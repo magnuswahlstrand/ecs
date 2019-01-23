@@ -1,13 +1,22 @@
 package main
 
 import (
+	"log"
+
+	"github.com/hajimehoshi/ebiten"
 	"github.com/kyeett/ecs/world"
 )
 
+const (
+	screenWidth  = 300
+	screenHeight = 290
+)
+
 func main() {
-	w := world.New()
+	w := world.New(screenWidth, screenHeight)
 	w.StartEventQueue()
-	for i := 0; i < 3; i++ {
-		w.Update()
+
+	if err := ebiten.Run(w.Update, screenWidth, screenHeight, 2, "ECS demo"); err != nil {
+		log.Fatal(err)
 	}
 }

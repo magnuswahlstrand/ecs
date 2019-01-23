@@ -1,6 +1,7 @@
 package system
 
 import (
+	"github.com/hajimehoshi/ebiten"
 	"github.com/kyeett/ecs/events"
 )
 
@@ -8,4 +9,9 @@ import (
 type System interface {
 	Send(events.Event)
 	Update()
+}
+
+// A RenderSystem is updated every iteration, and draws to a screen
+type RenderSystem interface {
+	Update(*ebiten.Image)
 }

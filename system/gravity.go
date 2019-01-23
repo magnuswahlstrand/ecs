@@ -26,8 +26,8 @@ func NewGravity(em *entity.Manager, ch chan events.Event, logger logging.Logger)
 func (g *Gravity) Update() {
 	for _, e := range g.em.FilteredEntities(components.VelocityType) {
 		g.log.WithField("id", e).Debugf("update")
-		pos := g.em.Pos(e)
-		pos.Y += 0.25
+		v := g.em.Velocity(e)
+		v.Y += 0.25
 	}
 }
 

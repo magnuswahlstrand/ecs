@@ -8,21 +8,15 @@ type Collision struct {
 	entityA, entityB string
 }
 
-type LeftPressed struct{}
+type LeftJustPressed struct{}
+type RightJustPressed struct{}
 
-func (l LeftPressed) Type() EventType {
-	return LeftPressedType
-}
-
-func (l RightPressed) Type() EventType {
-	return RightPressedType
-}
-
-type RightPressed struct{}
+func (l LeftJustPressed) Type() EventType  { return LeftJustPressedType }
+func (l RightJustPressed) Type() EventType { return RightJustPressedType }
 
 type EventType string
 
 const (
-	LeftPressedType  = "leftPressed"
-	RightPressedType = "rightPressed"
+	LeftJustPressedType  = "leftJustPressed"
+	RightJustPressedType = "rightJustPressed"
 )

@@ -27,6 +27,9 @@ func NewFollow(em *entity.Manager, ch chan events.Event, logger logging.Logger) 
 func (i *Follow) Update() {
 	for _, e := range i.em.FilteredEntities(components.PosType, components.FollowingType) {
 		follow := i.em.Follow(e)
+		pos := i.em.Pos(e)
+		posFollowed := i.em.Pos(follow.ID)
+		pos.Vec = posFollowed.Vec
 		i.log.Debugf("%q following %q", e, follow.ID)
 	}
 }

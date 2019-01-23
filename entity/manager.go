@@ -55,6 +55,10 @@ func (em *Manager) Add(e string, cs ...interface{}) {
 	em.entities.Add(e, cs...)
 }
 
+func (em *Manager) HasComponents(e string, types ...components.Type) bool {
+	return em.entities.HasComponents(e, types...)
+}
+
 func uuid() string {
 	return fmt.Sprintf("%d", rand.Intn(10000))
 }
@@ -69,4 +73,7 @@ func (em *Manager) Velocity(e string) *components.Velocity {
 
 func (em *Manager) Follow(e string) *components.Following {
 	return em.entities.GetUnsafe(e, components.FollowingType).(*components.Following)
+}
+func (em *Manager) Shaking(e string) *components.Shaking {
+	return em.entities.GetUnsafe(e, components.ShakingType).(*components.Shaking)
 }
