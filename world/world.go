@@ -4,6 +4,7 @@ import (
 	"github.com/kyeett/ecs/entity"
 	"github.com/kyeett/ecs/events"
 	"github.com/kyeett/ecs/logging"
+	"github.com/kyeett/ecs/player"
 	"github.com/kyeett/ecs/system"
 )
 
@@ -13,14 +14,16 @@ type World struct {
 }
 
 func New() *World {
-	em := entity.NewManager()
+	em := entity.NewManager(logging.NewLogger())
+	player.New(em)
 	eventCh := make(chan events.Event)
 	return &World{
 		eventCh: eventCh,
 		systems: []system.System{
-			system.NewInput(em, eventCh, logging.NewSystemLogger()),
-			system.NewGravity(em, eventCh, logging.NewSystemLogger()),
-			system.NewMovement(em, eventCh, logging.NewSystemLogger()),
+			system.NewInput(em, eventCh, logging.NewLogger()),
+			system.NewGravity(em, eventCh, logging.NewLogger()),
+			system.NewMovement(em, eventCh, logging.NewLogger()),
+			system.NewFollow(em, eventCh, logging.NewLogger()),
 		},
 	}
 }

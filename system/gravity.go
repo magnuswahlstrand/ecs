@@ -18,14 +18,14 @@ func NewGravity(em *entity.Manager, ch chan events.Event, logger logging.Logger)
 
 	return &Gravity{
 		em:  em,
-		log: logger.WithField("system", "gravity"),
+		log: logger.WithField("s", "gravity"),
 	}
 }
 
 // Update the input system
 func (g *Gravity) Update() {
-	g.log.Debugf("update")
 	for _, e := range g.em.FilteredEntities(components.VelocityType) {
+		g.log.WithField("id", e).Debugf("update")
 		pos := g.em.Pos(e)
 		pos.Y += 0.25
 	}

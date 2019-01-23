@@ -18,19 +18,11 @@ type SystemFormatter struct {
 }
 
 func (f *SystemFormatter) Format(entry *logrus.Entry) ([]byte, error) {
-	// as an example, we prepend a shamrock to all log messages
-	// but you can do whatever you want here.
-
-	var systemName interface{} = "unknown"
-	if val, ok := entry.Data["system"]; ok {
-		systemName = val
-		// delete(entry.Data, "system_name")
-	}
-	entry.Message = fmt.Sprintf("%-10s: ", systemName) + entry.Message
+	entry.Message = fmt.Sprintf("%-80s", fmt.Sprintf("%10s: ", entry.Data["s"])+entry.Message)
 	return f.TextFormatter.Format(entry)
 }
 
-func NewSystemLogger(level ...logrus.Level) *logrus.Logger {
+func NewLogger(level ...logrus.Level) Logger {
 	logger := logrus.New()
 	logger.SetLevel(logrus.DebugLevel)
 	if len(level) > 0 {
