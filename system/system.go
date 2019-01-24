@@ -8,7 +8,7 @@ import (
 // A System is updated every iteration, and can receive an Event
 type System interface {
 	Send(events.Event)
-	Update()
+	Update(diff float64)
 }
 
 // A RenderSystem is updated every iteration, and draws to a screen

@@ -23,11 +23,11 @@ func NewGravity(em *entity.Manager, ch chan events.Event, logger logging.Logger)
 }
 
 // Update the input system
-func (g *Gravity) Update() {
+func (g *Gravity) Update(dt float64) {
 	for _, e := range g.em.FilteredEntities(components.VelocityType) {
 		g.log.WithField("id", e).Debugf("update")
 		v := g.em.Velocity(e)
-		v.Y += 0.25
+		v.Y += 0.25 * dt
 	}
 }
 

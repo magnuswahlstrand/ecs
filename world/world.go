@@ -33,7 +33,7 @@ func New(width, height int) *World {
 			system.NewInput(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			// system.NewRandomInput(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			// system.NewControls(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
-			system.NewFriction(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
+			// system.NewFriction(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewGravity(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewMovement(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewFollow(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
@@ -61,13 +61,21 @@ func (w *World) StartEventQueue() {
 	}()
 }
 
+const defaultTimeStep = 0.1
+
+var timeStep = defaultTimeStep
+
 func (w *World) Update(screen *ebiten.Image) error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyTab) {
 		return gfx.ErrDone
 	}
 
+	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+		timeStep = defaultTimeStep - timeStep
+	}
+
 	for _, s := range w.systems {
-		s.Update()
+		s.Update(timeStep)
 	}
 
 	for _, s := range w.renderSystems {

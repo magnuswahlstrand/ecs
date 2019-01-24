@@ -24,7 +24,7 @@ func NewFollow(em *entity.Manager, ch chan events.Event, logger logging.Logger) 
 }
 
 // Update the Follow system
-func (i *Follow) Update() {
+func (i *Follow) Update(dt float64) {
 	for _, e := range i.em.FilteredEntities(components.PosType, components.FollowingType) {
 		follow := i.em.Follow(e)
 		pos := i.em.Pos(e)

@@ -28,7 +28,7 @@ func NewInput(em *entity.Manager, ch chan events.Event, logger logging.Logger) *
 }
 
 // Update the input system
-func (i *Input) Update() {
+func (i *Input) Update(dt float64) {
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyA) || inpututil.IsKeyJustPressed(ebiten.KeyLeft) {
 		i.outCh <- events.LeftJustPressed{}

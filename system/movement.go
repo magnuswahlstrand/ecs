@@ -24,12 +24,12 @@ func NewMovement(em *entity.Manager, ch chan events.Event, logger logging.Logger
 }
 
 // Update the movement system
-func (m *Movement) Update() {
+func (m *Movement) Update(dt float64) {
 	for _, e := range m.em.FilteredEntities(components.PosType, components.VelocityType) {
 		pos := m.em.Pos(e)
 		before := pos
 		v := m.em.Velocity(e)
-		pos.Vec = pos.Add(v.Vec)
+		pos.Vec = pos.Add(v.Vec.Scaled(dt))
 		m.log.WithField("id", e).Debugf("%q moving from %s to %s", e, before.Vec, pos.Vec)
 	}
 }

@@ -26,7 +26,7 @@ func NewShaking(em *entity.Manager, logger logging.Logger) *Shaking {
 }
 
 // Update the Shaking system
-func (s *Shaking) Update() {
+func (s *Shaking) Update(dt float64) {
 	e := "camera_1"
 
 	// Check for player collision

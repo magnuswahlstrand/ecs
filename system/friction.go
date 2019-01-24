@@ -23,7 +23,7 @@ func NewFriction(em *entity.Manager, ch chan events.Event, logger logging.Logger
 }
 
 // Update the input system
-func (f *Friction) Update() {
+func (f *Friction) Update(dt float64) {
 	for _, e := range f.em.FilteredEntities(components.VelocityType) {
 		v := f.em.Velocity(e)
 		v.Vec = v.ScaledXY(gfx.V(0.90, 0.90))

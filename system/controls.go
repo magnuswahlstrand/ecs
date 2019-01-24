@@ -27,7 +27,7 @@ func NewControls(em *entity.Manager, ch chan events.Event, logger logging.Logger
 }
 
 // Update the Controls system
-func (c *Controls) Update() {
+func (c *Controls) Update(dt float64) {
 
 	for _, ev := range c.events {
 		for _, e := range c.em.FilteredEntities(components.PosType, components.VelocityType, components.JoystickType) {

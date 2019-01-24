@@ -25,7 +25,7 @@ func NewRandomInput(em *entity.Manager, ch chan events.Event, logger logging.Log
 }
 
 // Update the RandomInput system
-func (i *RandomInput) Update() {
+func (i *RandomInput) Update(dt float64) {
 
 	switch rand.Intn(100) {
 	case 1:

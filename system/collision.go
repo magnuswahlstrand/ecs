@@ -26,7 +26,7 @@ func NewCollision(em *entity.Manager, ch chan events.Event, logger logging.Logge
 }
 
 // Update the Collision system
-func (c *Collision) Update() {
+func (c *Collision) Update(dt float64) {
 	for _, e := range c.em.FilteredEntities(components.PosType, components.VelocityType) {
 		pos := c.em.Pos(e)
 		v := c.em.Velocity(e)
