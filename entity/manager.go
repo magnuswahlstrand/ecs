@@ -28,6 +28,8 @@ func (em *Manager) Reset() {
 	for _, e := range em.entityList {
 		em.entities.RemoveAll(e)
 	}
+	em.entityList = []string{}
+	em.typeCounter = make(map[string]int)
 }
 
 func (em *Manager) FilteredEntities(types ...components.Type) []string {
@@ -53,6 +55,10 @@ func (em *Manager) NewEntity(typ ...string) string {
 
 func (em *Manager) Add(e string, cs ...interface{}) {
 	em.entities.Add(e, cs...)
+}
+
+func (em *Manager) Remove(e string, typ components.Type) {
+	em.entities.Remove(e, typ)
 }
 
 func (em *Manager) HasComponents(e string, types ...components.Type) bool {
@@ -85,4 +91,12 @@ func (em *Manager) Drawable(e string) *components.Drawable {
 
 func (em *Manager) Hitbox(e string) *components.Hitbox {
 	return em.entities.GetUnsafe(e, components.HitboxType).(*components.Hitbox)
+}
+
+func (em *Manager) Path(e string) *components.Path {
+	return em.entities.GetUnsafe(e, components.PathType).(*components.Path)
+}
+
+func (em *Manager) OnPath(e string) *components.OnPath {
+	return em.entities.GetUnsafe(e, components.OnPathType).(*components.OnPath)
 }

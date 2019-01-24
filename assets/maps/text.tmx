@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.2" tiledversion="1.2.1" orientation="orthogonal" renderorder="right-down" width="12" height="12" tilewidth="16" tileheight="16" infinite="0" nextlayerid="3" nextobjectid="7">
+ <layer id="1" name="Tile Layer 1" width="12" height="12">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <objectgroup id="2" name="paths">
+  <object id="3" name="nametext" type="typetext" x="2.17944" y="78.2253" width="89.5469" height="52.6391" rotation="2">
+   <properties>
+    <property name="test" value="asd"/>
+   </properties>
+   <text fontfamily="Copperplate" pixelsize="17" wrap="1" color="#c8010101" bold="1" italic="1" underline="1" strikeout="1" halign="right" valign="center">The test2</text>
+  </object>
+  <object id="4" type="actual" x="77" y="146" width="89.5469" height="18.8438">
+   <text wrap="1">Actual test</text>
+  </object>
+ </objectgroup>
+</map>

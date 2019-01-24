@@ -9,17 +9,15 @@ import (
 
 // Movement is responsible adding velocity to entity positions
 type Movement struct {
-	em    *entity.Manager
-	outCh chan events.Event
-	log   logging.Logger
+	em  *entity.Manager
+	log logging.Logger
 }
 
 // NewMovement creates a new movement system
-func NewMovement(em *entity.Manager, ch chan events.Event, logger logging.Logger) *Movement {
+func NewMovement(em *entity.Manager, logger logging.Logger) *Movement {
 	return &Movement{
-		em:    em,
-		outCh: ch,
-		log:   logger.WithField("s", "movement"),
+		em:  em,
+		log: logger.WithField("s", "movement"),
 	}
 }
 

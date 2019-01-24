@@ -18,7 +18,7 @@ func New(em *entity.Manager) {
 	pImage, _ := ebiten.NewImageFromImage(tmp, ebiten.FilterDefault)
 
 	e := em.NewEntity("player")
-	hitbox := gfx.R(6, 6, 18, 22)
+	hitbox := gfx.R(0, 6, 18, 22)
 	em.Add(e, components.Pos{Vec: gfx.V(20, 20)})
 	em.Add(e, components.Velocity{Vec: gfx.V(0, 0)})
 	em.Add(e, components.Joystick{})

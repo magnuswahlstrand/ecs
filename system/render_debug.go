@@ -60,6 +60,13 @@ func (r *DebugRender) Update(screen *ebiten.Image) {
 			ebitenutil.DebugPrintAt(screen, fmt.Sprintf("yV: %0.2f", v.Y), pos.Pt().X, pos.Pt().Y)
 		}
 	}
+
+	for _, e := range r.em.FilteredEntities(components.PathType) {
+		path := r.em.Path(e)
+		for i := range path.Points[:len(path.Points)-1] {
+			ebitenutil.DrawLine(screen, path.Points[i].X, path.Points[i].Y, path.Points[i+1].X, path.Points[i+1].Y, colornames.Red)
+		}
+	}
 }
 
 // Send is an empty method to implement the System interface
