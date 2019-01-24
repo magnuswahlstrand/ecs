@@ -34,14 +34,16 @@ func New(width, height int) *World {
 			// system.NewRandomInput(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			// system.NewControls(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewFriction(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
-			// system.NewGravity(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
+			system.NewGravity(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewMovement(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewFollow(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
-			system.NewShaking(em, logging.NewLogger(logrus.DebugLevel)),
+			// system.NewShaking(em, logging.NewLogger(logrus.DebugLevel)),
+			// system.NewCollision(em, eventCh, logging.NewLogger(logrus.DebugLevel)),
 		},
 		renderSystems: []system.RenderSystem{
 			system.NewRenderImage("assets/images/background.png", logging.NewLogger()),
-			// system.NewRender(em, logging.NewLogger()),
+			system.NewRender(em, logging.NewLogger()),
+			system.NewDebugRender(em, logging.NewLogger()),
 			// system.NewCamera(em, logging.NewLogger()),
 		},
 		camera: camera.New(em, width, height),
@@ -68,17 +70,11 @@ func (w *World) Update(screen *ebiten.Image) error {
 		s.Update()
 	}
 
-	// w.camera.Reset()
 	for _, s := range w.renderSystems {
 		s.Update(w.camera.Image)
 	}
-	// w.camera.DrawOn(screen)
 
-	// screen.Draw(w.camera.Image(), camera.Op())
-	screen.DrawImage(w.camera.Image, &ebiten.DrawImageOptions{})
 	r, op := w.camera.View()
-	// // op := &ebiten.DrawImageOptions{}
 	screen.DrawImage(w.camera.SubImage(r).(*ebiten.Image), op)
-
 	return nil
 }

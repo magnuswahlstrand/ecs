@@ -74,6 +74,15 @@ func (em *Manager) Velocity(e string) *components.Velocity {
 func (em *Manager) Follow(e string) *components.Following {
 	return em.entities.GetUnsafe(e, components.FollowingType).(*components.Following)
 }
+
 func (em *Manager) Shaking(e string) *components.Shaking {
 	return em.entities.GetUnsafe(e, components.ShakingType).(*components.Shaking)
+}
+
+func (em *Manager) Drawable(e string) *components.Drawable {
+	return em.entities.GetUnsafe(e, components.DrawableType).(*components.Drawable)
+}
+
+func (em *Manager) Hitbox(e string) *components.Hitbox {
+	return em.entities.GetUnsafe(e, components.HitboxType).(*components.Hitbox)
 }

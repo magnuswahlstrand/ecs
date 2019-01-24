@@ -1,7 +1,6 @@
 package camera
 
 import (
-	"fmt"
 	"image"
 	"log"
 	"math"
@@ -20,12 +19,12 @@ type Camera struct {
 	rect gfx.Rect
 }
 
-const padding = 10.0
+const padding = 0.0
 
 func New(em *entity.Manager, width, height int) *Camera {
 	e := em.NewEntity("camera")
 	em.Add(e, components.Pos{Vec: gfx.V(0, 0)})
-	em.Add(e, components.Following{ID: "player_1"})
+	// em.Add(e, components.Following{ID: "player_1"})
 
 	img, err := ebiten.NewImage(width+int(padding*2), height+int(padding*2), ebiten.FilterDefault)
 	if err != nil {
@@ -49,6 +48,7 @@ func (c *Camera) View() (image.Rectangle, *ebiten.DrawImageOptions) {
 
 	var offset gfx.Vec
 	pos := c.em.Pos(e)
+	pos.Y = 0
 	if c.em.HasComponents(e, components.ShakingType) {
 		s := c.em.Shaking(e)
 		since := time.Since(s.Started)
@@ -65,7 +65,6 @@ func (c *Camera) View() (image.Rectangle, *ebiten.DrawImageOptions) {
 	}
 	// op.GeoM.Translate(+padding, +padding)
 	// op.ColorM.Scale(0.5, 1, 0.5, 0.8)
-	fmt.Println(c.rect, pos, offset)
 
 	// return c.Image.Bounds(), op
 	return c.rect.Moved(pos.Vec).Moved(offset).Bounds(), op
