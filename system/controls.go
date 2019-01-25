@@ -34,13 +34,17 @@ func (c *Controls) Update(dt float64) {
 			v := c.em.Velocity(e)
 			switch ev.Type() {
 			case events.UpJustPressedType:
+
+				if c.em.HasComponents(e, components.ParentedType) {
+					removeParenting(e, c.em)
+				}
 				v.Vec = v.Add(gfx.V(0, -5))
 
 			case events.LeftJustPressedType:
-				v.Vec = v.Add(gfx.V(-2, 0))
+				v.Vec = v.Add(gfx.V(-1, 0))
 
 			case events.RightJustPressedType:
-				v.Vec = v.Add(gfx.V(2, 0))
+				v.Vec = v.Add(gfx.V(1, 0))
 			}
 		}
 	}
@@ -56,4 +60,13 @@ func (c *Controls) Send(ev events.Event) {
 	default:
 		c.log.Debugf("discard %q event", ev.Type())
 	}
+}
+
+// Remove parenting, and add velocity of parent to entity
+func removeParenting(e string, em *entity.Manager) {
+	parented := em.Parented(e)
+	v := em.Velocity(e)
+	pV := em.Velocity(parented.ID)
+	v.Vec = pV.Vec
+	em.Remove(e, components.ParentedType)
 }

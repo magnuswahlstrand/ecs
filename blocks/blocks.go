@@ -12,7 +12,7 @@ import (
 func New(em *entity.Manager, x, y int, cs ...interface{}) string {
 
 	e := em.NewEntity("block")
-	hitbox := gfx.R(0, 0, 50, 50)
+	hitbox := gfx.R(0, 0, 64, 64)
 	em.Add(e, components.Pos{Vec: gfx.IV(x, y)})
 	em.Add(e, components.Velocity{Vec: gfx.V(0, 0)})
 	em.Add(e, components.NewHitbox(hitbox))

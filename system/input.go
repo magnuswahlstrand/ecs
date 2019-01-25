@@ -1,14 +1,11 @@
 package system
 
 import (
-	"time"
-
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/inpututil"
 	"github.com/kyeett/ecs/entity"
 	"github.com/kyeett/ecs/events"
 	"github.com/kyeett/ecs/logging"
-	"github.com/kyeett/gomponents/components"
 )
 
 // Input is responsible for handling user input and sending input events
@@ -40,7 +37,7 @@ func (i *Input) Update(dt float64) {
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyD) || inpututil.IsKeyJustPressed(ebiten.KeyRight) {
 		i.outCh <- events.RightJustPressed{}
-		i.em.Add("camera_1", components.Shaking{time.Now()})
+		// i.em.Add("camera_1", components.Shaking{time.Now()})
 
 	}
 }

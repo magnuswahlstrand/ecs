@@ -31,6 +31,9 @@ func resolvRectangle(r gfx.Rect) *resolv.Rectangle {
 
 // Update the movement system
 func (m *Movement) Update(dt float64) {
+	if dt == 0.0 {
+		return
+	}
 	playerID := "player_1"
 
 	for _, e := range m.em.FilteredEntities(components.PosType, components.VelocityType) {
@@ -71,11 +74,13 @@ func (m *Movement) movePlayer(dt float64) {
 	if m.em.HasComponents(playerID, components.ParentedType) {
 		parented := m.em.Parented(playerID)
 		parentVelocity = m.em.Velocity(parented.ID).Vec
-		fmt.Println("Has parent!", parentVelocity)
+		if parentVelocity.Y < -0.5 {
+			// time.Sleep(1 * time.Second)
+		}
 	}
 
 	// Round to whole int steps
-	tX, tY := pos.Add(v.Vec).Add(parentVelocity).Scaled(dt).XY()
+	tX, tY := pos.Add(v.Vec.Add(parentVelocity).Scaled(dt)).XY()
 	rX, rY := int32(tX), int32(tY)
 
 	pX, pY := pos.XY()
@@ -85,7 +90,7 @@ func (m *Movement) movePlayer(dt float64) {
 
 	// if rY-rPY != 0 {
 	if res := space.Resolve(r, 0, rY-rPY); res.Colliding() && !res.Teleporting {
-		fmt.Println("Y Colliding", res.ShapeB.GetTags(), v.Y)
+		fmt.Println("Y Colliding", res.ShapeB.GetTags(), v.Y, res.ResolveY)
 
 		collidingOnTop := v.Y > 0
 
@@ -94,8 +99,18 @@ func (m *Movement) movePlayer(dt float64) {
 		// If landing on top, mark colliding entity as parent
 		if collidingOnTop {
 			collidingID := res.ShapeB.GetTags()[0]
-			fmt.Println("add colliding")
+			hbColl := m.em.Hitbox(collidingID).Moved(m.em.Pos(collidingID).Vec)
+			cV := m.em.Velocity(collidingID)
+
+			// Set pos to upper limit
+			fmt.Printf("add colliding, resolv=%v, playerhb=%v, collidedHB=%v\n", res.ResolveY, hb.Moved(pos.Vec), hbColl)
+			// time.Sleep(15 * time.Second)
+			// pos.Y += float64(res.ResolveY)
+			pos.Y += hbColl.Min.Sub(hb.Moved(pos.Vec).Max).Y
+
+			// Mark colliding as parent!
 			m.em.Add(playerID, components.Parented{ID: collidingID})
+			v.X -= cV.X
 		}
 
 	} else {
@@ -105,11 +120,11 @@ func (m *Movement) movePlayer(dt float64) {
 	}
 
 	if res := space.Resolve(r, rX-rPX, 0); res.Colliding() && !res.Teleporting {
-		fmt.Println("X Colliding with", res.ShapeB.GetTags())
+		// fmt.Println("X Colliding with", res.ShapeB.GetTags())
 		v.X = 0
 	} else {
 		pos.X += (v.X + parentVelocity.X) * dt
-		fmt.Println("X OK!", res.Colliding(), res.Teleporting, pos.X)
+		// fmt.Println("X OK!", res.Colliding(), res.Teleporting)
 	}
 }
 

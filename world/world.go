@@ -44,7 +44,7 @@ func New(width, height int) *World {
 			system.NewInput(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			// system.NewRandomInput(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewControls(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
-			// system.NewFriction(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
+			system.NewFriction(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewGravity(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewPath(em, logging.NewLogger(logrus.InfoLevel)),
 			system.NewMovement(em, logging.NewLogger(logrus.InfoLevel)),
@@ -65,12 +65,12 @@ func defaultEntities(em *entity.Manager) {
 	// Add a player
 
 	pathID := em.NewEntity("path")
-	em.Add(pathID, components.Path{"line", gfx.Polygon{gfx.V(10, 100), gfx.V(10, 150), gfx.V(70, 150)}})
+	em.Add(pathID, components.Path{"line", gfx.Polygon{gfx.V(10, 100), gfx.V(10, 150), gfx.V(70, 150), gfx.V(70, 100), gfx.V(10, 100)}})
 	blocks.NewDrawable(em, 0, 100, components.OnPath{
 		Label:     pathID,
 		Speed:     1,
 		Target:    1,
-		Mode:      pathanimation.LinearPingPong,
+		Mode:      pathanimation.LinearLoop,
 		Direction: 1,
 	})
 	player.NewDrawable(em)
