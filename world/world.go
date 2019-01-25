@@ -10,6 +10,7 @@ import (
 
 	"github.com/kyeett/ecs/blocks"
 	"github.com/kyeett/ecs/camera"
+	"github.com/kyeett/ecs/rendersystem"
 
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/inpututil"
@@ -25,7 +26,7 @@ type World struct {
 	eventCh       chan events.Event
 	camera        *camera.Camera
 	systems       []system.System
-	renderSystems []system.RenderSystem
+	renderSystems []rendersystem.System
 	em            *entity.Manager
 }
 
@@ -33,18 +34,8 @@ const defaultTimeStep = 1.0
 
 func New(width, height int) *World {
 	em := entity.NewManager(logging.NewLogger())
-	// Add a player
-	player.NewDrawable(em)
 
-	pathID := em.NewEntity("path")
-	em.Add(pathID, components.Path{"line", gfx.Polygon{gfx.V(0, 100), gfx.V(100, 100), gfx.V(110, 110)}})
-	blocks.NewDrawable(em, 0, 100, components.OnPath{
-		Label:     pathID,
-		Speed:     1,
-		Target:    1,
-		Mode:      pathanimation.LinearPingPong,
-		Direction: 1,
-	})
+	defaultEntities(em)
 
 	eventCh := make(chan events.Event, 1000)
 	return &World{
@@ -52,7 +43,7 @@ func New(width, height int) *World {
 		systems: []system.System{
 			system.NewInput(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			// system.NewRandomInput(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
-			// system.NewControls(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
+			system.NewControls(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			// system.NewFriction(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewGravity(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewPath(em, logging.NewLogger(logrus.InfoLevel)),
@@ -60,21 +51,35 @@ func New(width, height int) *World {
 			system.NewFollow(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			// system.NewShaking(em, logging.NewLogger(logrus.DebugLevel)),
 		},
-		renderSystems: []system.RenderSystem{
-			system.NewRenderImage("assets/images/background.png", logging.NewLogger()),
-			system.NewRender(em, logging.NewLogger()),
-			// system.NewDebugRender(em, logging.NewLogger()),
+		renderSystems: []rendersystem.System{
+			rendersystem.NewRenderImage("assets/images/background.png", logging.NewLogger()),
+			rendersystem.NewRender(em, logging.NewLogger()),
+			rendersystem.NewDebugRender(em, logging.NewLogger()),
 		},
 		camera: camera.New(em, width, height),
 		em:     em,
 	}
 }
 
+func defaultEntities(em *entity.Manager) {
+	// Add a player
+	player.NewDrawable(em)
+
+	pathID := em.NewEntity("path")
+	em.Add(pathID, components.Path{"line", gfx.Polygon{gfx.V(10, 100), gfx.V(10, 150), gfx.V(70, 150)}})
+	blocks.NewDrawable(em, 0, 100, components.OnPath{
+		Label:     pathID,
+		Speed:     1,
+		Target:    1,
+		Mode:      pathanimation.LinearPingPong,
+		Direction: 1,
+	})
+}
+
 func (w *World) Reset() {
 	w.em.Reset()
 	w.camera.Reset()
-	player.New(w.em)
-	blocks.New(w.em, 0, 100)
+	defaultEntities(w.em)
 }
 
 func (w *World) StartEventQueue() {

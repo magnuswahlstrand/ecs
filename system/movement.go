@@ -42,7 +42,6 @@ func (m *Movement) Update(dt float64) {
 		pos := m.em.Pos(e)
 		hb := m.em.Hitbox(e)
 		hbMoved := hb.Moved(pos.Vec)
-		fmt.Println(hbMoved)
 		r := resolvRectangle(hbMoved)
 		r.SetTags(e)
 		space.AddShape(r)
@@ -58,7 +57,6 @@ func (m *Movement) Update(dt float64) {
 
 	pX, pY := pos.XY()
 	rPX, rPY := int32(pX), int32(pY)
-	fmt.Println(pX, pY, rX-rPX, rY-rPY, v.Y)
 
 	r := resolvRectangle(hb.Moved(pos.Vec))
 
