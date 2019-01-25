@@ -99,18 +99,24 @@ func (p *Path) followCirclePath(e string, path *components.Path, onPath *compone
 	r := path.Points[1].Sub(center).Len()
 	angleV := onPath.Speed * dt / (r)
 
-	fmt.Println(pos, pos.Sub(center), pos.Sub(center).Angle(), r, onPath.Speed*dt, onPath.Speed*dt/(r))
-	norm := pos.Sub(center).Rotated(angleV)
+	// fmt.Println(pos, pos.Sub(center), pos.Sub(center).Angle(), r, onPath.Speed*dt, onPath.Speed*dt/(r))
+
+	norm := pos.Sub(center)
+	currentAngle := norm.Angle()
+	// Swap direction in PingPong mode
+	if onPath.Mode == pathanimation.LinearPingPong && (currentAngle+float64(onPath.Direction)*angleV > math.Pi || currentAngle+float64(onPath.Direction)*angleV < -math.Pi) {
+		onPath.Direction = -onPath.Direction
+	}
+	norm = norm.Rotated(float64(onPath.Direction) * angleV)
 	target := norm.Add(center)
-	fmt.Println(target.Angle())
-	fmt.Printf("r:%f, angleV:%0.2f, target:%s, nAngle: %0.2f. norm:%s\n", r, angleV/(2*math.Pi), target, norm.Angle(), norm)
+	fmt.Println(norm.Angle())
+	// fmt.Printf("r:%f, angleV:%0.2f, target:%s, nAngle: %0.2f. norm:%s\n", r, angleV/(2*math.Pi), target, norm.Angle(), norm)
 
 	// v := p.em.Velocity(e)
 	// target := path.Points[onPath.Target]
 	v := p.em.Velocity(e)
 	to := target.Sub(pos.Vec)
 	v.Vec = to.Scaled(1 / dt)
-	fmt.Println(to)
 
 	// // Next point is closer than speed, set velocity to reach point exactly
 	// to := target.Sub(pos.Vec)

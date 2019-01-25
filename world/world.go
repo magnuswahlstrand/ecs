@@ -37,7 +37,7 @@ func New(width, height int) *World {
 
 	defaultEntities(em)
 
-	eventCh := make(chan events.Event, 1000)
+	eventCh := make(chan events.Event, 100)
 	return &World{
 		eventCh: eventCh,
 		systems: []system.System{
@@ -85,15 +85,27 @@ func defaultEntities(em *entity.Manager) {
 		Points: gfx.Polygon{gfx.V(110, 60), gfx.V(110, 120)},
 		Type:   pathanimation.Ellipse,
 	})
+	blocks.NewDrawable(em, 110, 120, components.OnPath{
+		Label:     pathID,
+		Speed:     1,
+		Target:    1,
+		Mode:      pathanimation.LinearPingPong,
+		Direction: 1,
+	})
 
+	pathID = em.NewEntity("path")
+	em.Add(pathID, components.Path{
+		Label:  "ellipse",
+		Points: gfx.Polygon{gfx.V(170, 80), gfx.V(170, 120)},
+		Type:   pathanimation.Ellipse,
+	})
 	blocks.NewDrawable(em, 110, 120, components.OnPath{
 		Label:     pathID,
 		Speed:     1,
 		Target:    1,
 		Mode:      pathanimation.LinearLoop,
-		Direction: -1,
+		Direction: 1,
 	})
-
 	player.NewDrawable(em)
 }
 

@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	screenWidth  = 200
-	screenHeight = 200
+	screenWidth  = 400
+	screenHeight = 400
 )
 
 func main() {
@@ -17,7 +17,7 @@ func main() {
 	w := world.New(screenWidth, screenHeight)
 	w.StartEventQueue()
 
-	if err := ebiten.Run(w.Update, screenWidth, screenHeight, 2, "ECS demo"); err != nil {
+	if err := ebiten.Run(w.Update, screenWidth, screenHeight, 1, "ECS demo"); err != nil {
 		log.Fatal(err)
 	}
 }

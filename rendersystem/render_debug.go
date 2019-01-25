@@ -72,6 +72,7 @@ func (r *DebugRender) Update(screen *ebiten.Image) {
 			}
 		case pathanimation.Ellipse:
 			gfx.DrawCircle(screen, path.Points[0], path.Points[0].Sub(path.Points[1]).Len(), 1.1, colornames.Purple)
+			gfx.DrawLine(screen, path.Points[0], path.Points[1], 1.1, colornames.Yellow)
 		}
 	}
 }
