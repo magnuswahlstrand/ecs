@@ -93,19 +93,6 @@ func defaultEntities(em *entity.Manager) {
 		Direction: 1,
 	})
 
-	pathID = em.NewEntity("path")
-	em.Add(pathID, components.Path{
-		Label:  "ellipse",
-		Points: gfx.Polygon{gfx.V(170, 80), gfx.V(170, 120)},
-		Type:   pathanimation.Ellipse,
-	})
-	blocks.NewDrawable(em, 110, 120, components.OnPath{
-		Label:     pathID,
-		Speed:     1,
-		Target:    1,
-		Mode:      pathanimation.LinearLoop,
-		Direction: 1,
-	})
 	player.NewDrawable(em)
 }
 
