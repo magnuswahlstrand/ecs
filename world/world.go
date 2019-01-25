@@ -6,6 +6,7 @@ import (
 	"github.com/peterhellberg/gfx"
 
 	"github.com/kyeett/gomponents/components"
+	"github.com/kyeett/gomponents/pathanimation"
 
 	"github.com/kyeett/ecs/blocks"
 	"github.com/kyeett/ecs/camera"
@@ -28,13 +29,22 @@ type World struct {
 	em            *entity.Manager
 }
 
+const defaultTimeStep = 1.0
+
 func New(width, height int) *World {
 	em := entity.NewManager(logging.NewLogger())
 	// Add a player
-	// player.New(em)
-	blocks.New(em, 0, 100)
-	e := em.NewEntity("path")
-	em.Add(e, components.Path{"line", gfx.Polygon{gfx.V(0, 100), gfx.V(100, 100), gfx.V(110, 110)}})
+	player.NewDrawable(em)
+
+	pathID := em.NewEntity("path")
+	em.Add(pathID, components.Path{"line", gfx.Polygon{gfx.V(0, 100), gfx.V(100, 100), gfx.V(110, 110)}})
+	blocks.NewDrawable(em, 0, 100, components.OnPath{
+		Label:     pathID,
+		Speed:     1,
+		Target:    1,
+		Mode:      pathanimation.LinearPingPong,
+		Direction: 1,
+	})
 
 	eventCh := make(chan events.Event, 1000)
 	return &World{
@@ -45,17 +55,15 @@ func New(width, height int) *World {
 			// system.NewControls(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			// system.NewFriction(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewGravity(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
-			system.NewPath(em, eventCh, logging.NewLogger(logrus.DebugLevel)),
-			system.NewMovement(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
+			system.NewPath(em, logging.NewLogger(logrus.InfoLevel)),
+			system.NewMovement(em, logging.NewLogger(logrus.InfoLevel)),
 			system.NewFollow(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			// system.NewShaking(em, logging.NewLogger(logrus.DebugLevel)),
-			// system.NewCollision(em, eventCh, logging.NewLogger(logrus.DebugLevel)),
 		},
 		renderSystems: []system.RenderSystem{
 			system.NewRenderImage("assets/images/background.png", logging.NewLogger()),
 			system.NewRender(em, logging.NewLogger()),
-			system.NewDebugRender(em, logging.NewLogger()),
-			// system.NewCamera(em, logging.NewLogger()),
+			// system.NewDebugRender(em, logging.NewLogger()),
 		},
 		camera: camera.New(em, width, height),
 		em:     em,
@@ -79,8 +87,6 @@ func (w *World) StartEventQueue() {
 		}
 	}()
 }
-
-const defaultTimeStep = 0.5
 
 var timeStep = defaultTimeStep
 
