@@ -1,7 +1,6 @@
 package system
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/kyeett/gomponents/pathanimation"
@@ -90,42 +89,30 @@ func (p *Path) followPolygonPath(e string, path *components.Path, onPath *compon
 }
 
 func (p *Path) followCirclePath(e string, path *components.Path, onPath *components.OnPath, dt float64) {
-
-	center := path.Points[0]
-
-	// Find direction towards point
+	pathCenter := path.Points[0]
+	pathStart := path.Points[1]
 	pos := p.em.Pos(e)
+	r := pathStart.Sub(pathCenter).Len()
 
-	r := path.Points[1].Sub(center).Len()
-	angleV := onPath.Speed * dt / (r)
+	// Calculate the angular velocity
+	angleV := onPath.Speed * dt / r
 
-	// fmt.Println(pos, pos.Sub(center), pos.Sub(center).Angle(), r, onPath.Speed*dt, onPath.Speed*dt/(r))
-
-	norm := pos.Sub(center)
+	// Calculate the current angle
+	norm := pos.Sub(pathCenter)
 	currentAngle := norm.Angle()
-	// Swap direction in PingPong mode
+
+	// Swap direction in PingPong mode, if we have reached the end
 	if onPath.Mode == pathanimation.LinearPingPong && (currentAngle+float64(onPath.Direction)*angleV > math.Pi || currentAngle+float64(onPath.Direction)*angleV < -math.Pi) {
 		onPath.Direction = -onPath.Direction
 	}
-	norm = norm.Rotated(float64(onPath.Direction) * angleV)
-	target := norm.Add(center)
-	fmt.Println(norm.Angle())
-	// fmt.Printf("r:%f, angleV:%0.2f, target:%s, nAngle: %0.2f. norm:%s\n", r, angleV/(2*math.Pi), target, norm.Angle(), norm)
+	target := norm.Rotated(float64(onPath.Direction) * angleV).Add(pathCenter)
 
-	// v := p.em.Velocity(e)
-	// target := path.Points[onPath.Target]
-	v := p.em.Velocity(e)
+	// Path from current position to target
 	to := target.Sub(pos.Vec)
-	v.Vec = to.Scaled(1 / dt)
 
-	// // Next point is closer than speed, set velocity to reach point exactly
-	// to := target.Sub(pos.Vec)
-	// if to.Len() < onPath.Speed*dt {
-	// 	v.Vec = to.Scaled(1 / dt)
-	// 	onPath.Target += onPath.Direction
-	// } else {
-	// 	v.Vec = to.Unit().Scaled(onPath.Speed)
-	// }
+	//Todo: this is a bit weird. Can we avoid scaling here?
+	v := p.em.Velocity(e)
+	v.Vec = to.Scaled(1 / dt)
 }
 
 // Send is an empty method to implement the System interface

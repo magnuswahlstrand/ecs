@@ -234,8 +234,10 @@ func Test_PathEllipse(t *testing.T) {
 	path := em.Path(pathID)
 
 	// Set up a block that follows a path
+	//    0,3
+	//   2O4,5
+	//    1
 	r := path.Points[1].Sub(path.Points[0]).Len()
-
 	timeStep := 0.5
 	speed := (2 * r * math.Pi) / 4 / timeStep // speed is 4th of circumference
 	fmt.Println(speed / math.Pi)
@@ -250,12 +252,8 @@ func Test_PathEllipse(t *testing.T) {
 	pathSystem := system.NewPath(em, logging.NewLogger(logrus.DebugLevel))
 	movSystem := system.NewMovement(em, logging.NewLogger(logrus.DebugLevel))
 	pos := em.Pos(blockID)
-	// onPath := em.OnPath(blockID)
 
-	// Move along this path
-	//    0,5
-	//   3O1
-	//    2
+	// Rotate 1.25 rounds
 	steps := []gfx.Vec{
 		path.Points[1].Add(gfx.V(-r, -r)),
 		path.Points[1].Add(gfx.V(0, -2*r)),
