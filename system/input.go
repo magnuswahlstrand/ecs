@@ -28,15 +28,15 @@ func NewInput(em *entity.Manager, ch chan events.Event, logger logging.Logger) *
 func (i *Input) Update(dt float64) {
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyW) || inpututil.IsKeyJustPressed(ebiten.KeyUp) {
-		i.outCh <- events.UpJustPressed{}
+		i.outCh <- events.KeyJustPressed{ebiten.KeyUp}
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyA) || inpututil.IsKeyJustPressed(ebiten.KeyLeft) {
-		i.outCh <- events.LeftJustPressed{}
+	if ebiten.IsKeyPressed(ebiten.KeyA) || ebiten.IsKeyPressed(ebiten.KeyLeft) {
+		i.outCh <- events.KeyPressed{ebiten.KeyLeft}
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyD) || inpututil.IsKeyJustPressed(ebiten.KeyRight) {
-		i.outCh <- events.RightJustPressed{}
+	if ebiten.IsKeyPressed(ebiten.KeyD) || ebiten.IsKeyPressed(ebiten.KeyRight) {
+		i.outCh <- events.KeyPressed{ebiten.KeyRight}
 		// i.em.Add("camera_1", components.Shaking{time.Now()})
 
 	}

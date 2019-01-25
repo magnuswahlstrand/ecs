@@ -3,6 +3,8 @@ package system
 import (
 	"math/rand"
 
+	"github.com/hajimehoshi/ebiten"
+
 	"github.com/kyeett/ecs/entity"
 	"github.com/kyeett/ecs/events"
 	"github.com/kyeett/ecs/logging"
@@ -29,9 +31,9 @@ func (i *RandomInput) Update(dt float64) {
 
 	switch rand.Intn(100) {
 	case 1:
-		i.outCh <- events.LeftJustPressed{}
+		i.outCh <- events.KeyPressed{ebiten.KeyLeft}
 	case 2:
-		i.outCh <- events.RightJustPressed{}
+		i.outCh <- events.KeyPressed{ebiten.KeyRight}
 	default:
 
 	}

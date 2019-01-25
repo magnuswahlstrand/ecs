@@ -43,8 +43,8 @@ func New(width, height int) *World {
 		systems: []system.System{
 			system.NewInput(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			// system.NewRandomInput(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
-			system.NewControls(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewFriction(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
+			system.NewControls(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewGravity(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewPath(em, logging.NewLogger(logrus.InfoLevel)),
 			system.NewMovement(em, logging.NewLogger(logrus.InfoLevel)),

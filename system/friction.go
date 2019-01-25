@@ -28,7 +28,7 @@ func (f *Friction) Update(dt float64) {
 
 		if f.em.HasComponents(e, components.ParentedType) {
 			v := f.em.Velocity(e)
-			v.Vec = v.ScaledXY(gfx.V(0.9, 0.9))
+			v.Vec = v.ScaledXY(gfx.V(0.90, 0.9))
 		}
 	}
 }
