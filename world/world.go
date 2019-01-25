@@ -54,7 +54,7 @@ func New(width, height int) *World {
 		renderSystems: []rendersystem.System{
 			rendersystem.NewRenderImage("assets/images/background.png", logging.NewLogger()),
 			rendersystem.NewRender(em, logging.NewLogger()),
-			rendersystem.NewDebugRender(em, logging.NewLogger()),
+			// rendersystem.NewDebugRender(em, logging.NewLogger()),
 		},
 		camera: camera.New(em, width, height),
 		em:     em,
@@ -63,7 +63,6 @@ func New(width, height int) *World {
 
 func defaultEntities(em *entity.Manager) {
 	// Add a player
-	player.NewDrawable(em)
 
 	pathID := em.NewEntity("path")
 	em.Add(pathID, components.Path{"line", gfx.Polygon{gfx.V(10, 100), gfx.V(10, 150), gfx.V(70, 150)}})
@@ -74,6 +73,7 @@ func defaultEntities(em *entity.Manager) {
 		Mode:      pathanimation.LinearPingPong,
 		Direction: 1,
 	})
+	player.NewDrawable(em)
 }
 
 func (w *World) Reset() {

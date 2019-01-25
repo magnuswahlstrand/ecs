@@ -100,3 +100,7 @@ func (em *Manager) Path(e string) *components.Path {
 func (em *Manager) OnPath(e string) *components.OnPath {
 	return em.entities.GetUnsafe(e, components.OnPathType).(*components.OnPath)
 }
+
+func (em *Manager) Parented(e string) *components.Parented {
+	return em.entities.GetUnsafe(e, components.ParentedType).(*components.Parented)
+}

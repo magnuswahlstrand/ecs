@@ -1,7 +1,6 @@
 package rendersystem
 
 import (
-	"fmt"
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten"
@@ -30,7 +29,6 @@ func NewRender(em *entity.Manager, logger logging.Logger) *Render {
 // Update the Render system
 func (r *Render) Update(screen *ebiten.Image) {
 	for _, e := range r.em.FilteredEntities(components.PosType, components.DrawableType) {
-		fmt.Println(e)
 		pos := r.em.Pos(e)
 
 		sImg := r.em.Drawable(e).Image

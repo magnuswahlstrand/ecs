@@ -33,6 +33,9 @@ func (c *Controls) Update(dt float64) {
 		for _, e := range c.em.FilteredEntities(components.PosType, components.VelocityType, components.JoystickType) {
 			v := c.em.Velocity(e)
 			switch ev.Type() {
+			case events.UpJustPressedType:
+				v.Vec = v.Add(gfx.V(0, -5))
+
 			case events.LeftJustPressedType:
 				v.Vec = v.Add(gfx.V(-2, 0))
 
@@ -47,7 +50,7 @@ func (c *Controls) Update(dt float64) {
 // Send listens for key, mouse and pad-events
 func (c *Controls) Send(ev events.Event) {
 	switch ev.Type() {
-	case events.LeftJustPressedType, events.RightJustPressedType:
+	case events.UpJustPressedType, events.LeftJustPressedType, events.RightJustPressedType:
 		c.events = append(c.events, ev)
 		c.log.Debugf("recieved %q event", ev.Type())
 	default:
