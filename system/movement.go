@@ -31,63 +31,10 @@ func resolvRectangle(r gfx.Rect) *resolv.Rectangle {
 
 // Update the movement system
 func (m *Movement) Update(dt float64) {
+	if dt == 0.0 {
+		return
+	}
 	playerID := "player_1"
-
-	// Create space
-	var space resolv.Space
-	for _, e := range m.em.FilteredEntities(components.HitboxType) {
-		if e == playerID {
-			continue
-		}
-		pos := m.em.Pos(e)
-		hb := m.em.Hitbox(e)
-		hbMoved := hb.Moved(pos.Vec)
-		fmt.Println(hbMoved)
-		r := resolvRectangle(hbMoved)
-		r.SetTags(e)
-		space.AddShape(r)
-	}
-
-	pos := m.em.Pos(playerID)    //Todo, remove hardcoding?
-	v := m.em.Velocity(playerID) //Todo, remove hardcoding?
-	hb := m.em.Hitbox(playerID)
-
-	// Round to whole int steps
-	tX, tY := pos.Add(v.Vec.Scaled(dt)).XY()
-	rX, rY := int32(tX), int32(tY)
-
-	pX, pY := pos.XY()
-	rPX, rPY := int32(pX), int32(pY)
-	fmt.Println(pX, pY, rX-rPX, rY-rPY, v.Y)
-
-	r := resolvRectangle(hb.Moved(pos.Vec))
-
-	// if rY-rPY != 0 {
-	if res := space.Resolve(r, 0, rY-rPY); res.Colliding() && !res.Teleporting {
-		fmt.Println("Colliding", res.ShapeB.GetTags())
-		v.Y = 0
-	} else {
-		fmt.Println("OK!", res.Colliding(), res.Teleporting)
-		pos.Y += v.Y * dt
-		r.Move(0, rY-rPY) //FIXME, is this correct?
-	}
-	// }
-
-	if rX-rPX != 0 {
-		if res := space.Resolve(r, rX-rPX, 0); res.Colliding() && !res.Teleporting {
-			fmt.Println("Colliding with", res.ShapeB.GetTags())
-			v.X = 0
-		} else {
-			fmt.Println("OK!", res.Colliding(), res.Teleporting)
-			pos.X += v.X * dt
-		}
-	}
-	// r.Move(x int32, y int32)
-	// if res := space.Resolve(r, 0, int32(v.Y)); res.Colliding() && !res.Teleporting {
-	// 	v.Y = 0
-	// } else {
-
-	// }
 
 	for _, e := range m.em.FilteredEntities(components.PosType, components.VelocityType) {
 		if e == playerID {
@@ -98,6 +45,86 @@ func (m *Movement) Update(dt float64) {
 		v := m.em.Velocity(e)
 		pos.Vec = pos.Add(v.Vec.Scaled(dt))
 		m.log.WithField("id", e).Debugf("%q moving from %s to %s", e, before.Vec, pos.Vec)
+	}
+	m.movePlayer(dt)
+}
+
+func (m *Movement) movePlayer(dt float64) {
+
+	playerID := "player_1"
+	// Create space
+	var space resolv.Space
+	for _, e := range m.em.FilteredEntities(components.HitboxType) {
+		if e == playerID {
+			continue
+		}
+		pos := m.em.Pos(e)
+		hb := m.em.Hitbox(e)
+		hbMoved := hb.Moved(pos.Vec)
+		r := resolvRectangle(hbMoved)
+		r.SetTags(e)
+		space.AddShape(r)
+	}
+
+	pos := m.em.Pos(playerID)    //Todo, remove hardcoding?
+	v := m.em.Velocity(playerID) //Todo, remove hardcoding?
+	hb := m.em.Hitbox(playerID)
+
+	parentVelocity := gfx.ZV
+	if m.em.HasComponents(playerID, components.ParentedType) {
+		parented := m.em.Parented(playerID)
+		parentVelocity = m.em.Velocity(parented.ID).Vec
+		if parentVelocity.Y < -0.5 {
+			// time.Sleep(1 * time.Second)
+		}
+	}
+
+	// Round to whole int steps
+	tX, tY := pos.Add(v.Vec.Add(parentVelocity).Scaled(dt)).XY()
+	rX, rY := int32(tX), int32(tY)
+
+	pX, pY := pos.XY()
+	rPX, rPY := int32(pX), int32(pY)
+
+	r := resolvRectangle(hb.Moved(pos.Vec))
+
+	// if rY-rPY != 0 {
+	if res := space.Resolve(r, 0, rY-rPY); res.Colliding() && !res.Teleporting {
+		fmt.Println("Y Colliding", res.ShapeB.GetTags(), v.Y, res.ResolveY)
+
+		collidingOnTop := v.Y > 0
+
+		v.Y = 0
+
+		// If landing on top, mark colliding entity as parent
+		if collidingOnTop {
+			collidingID := res.ShapeB.GetTags()[0]
+			hbColl := m.em.Hitbox(collidingID).Moved(m.em.Pos(collidingID).Vec)
+			cV := m.em.Velocity(collidingID)
+
+			// Set pos to upper limit
+			fmt.Printf("add colliding, resolv=%v, playerhb=%v, collidedHB=%v\n", res.ResolveY, hb.Moved(pos.Vec), hbColl)
+			// time.Sleep(15 * time.Second)
+			// pos.Y += float64(res.ResolveY)
+			pos.Y += hbColl.Min.Sub(hb.Moved(pos.Vec).Max).Y
+
+			// Mark colliding as parent!
+			m.em.Add(playerID, components.Parented{ID: collidingID})
+			v.X -= cV.X
+		}
+
+	} else {
+		fmt.Println("Y OK!", res.Colliding(), res.Teleporting)
+		pos.Y += (v.Y + parentVelocity.Y) * dt
+		r.Move(0, rY-rPY) //FIXME, is this correct?
+	}
+
+	if res := space.Resolve(r, rX-rPX, 0); res.Colliding() && !res.Teleporting {
+		// fmt.Println("X Colliding with", res.ShapeB.GetTags())
+		v.X = 0
+	} else {
+		pos.X += (v.X + parentVelocity.X) * dt
+		// fmt.Println("X OK!", res.Colliding(), res.Teleporting)
 	}
 }
 

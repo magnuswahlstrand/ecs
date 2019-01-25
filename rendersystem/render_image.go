@@ -1,4 +1,4 @@
-package system
+package rendersystem
 
 import (
 	"github.com/hajimehoshi/ebiten"

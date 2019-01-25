@@ -3,6 +3,8 @@ package system
 import (
 	"time"
 
+	"github.com/hajimehoshi/ebiten"
+
 	"github.com/kyeett/ecs/entity"
 	"github.com/kyeett/ecs/events"
 	"github.com/kyeett/ecs/logging"
@@ -31,11 +33,13 @@ func (s *Shaking) Update(dt float64) {
 
 	// Check for player collision
 	for _, ev := range s.events {
-		switch ev.Type() {
-		case events.LeftJustPressedType:
 
-		case events.RightJustPressedType:
-			s.em.Add(e, components.Shaking{Started: time.Now()})
+		switch val := ev.(type) {
+		case events.KeyPressed:
+			switch val.Key {
+			case ebiten.KeyRight:
+				s.em.Add(e, components.Shaking{Started: time.Now()})
+			}
 		}
 	}
 	s.events = []events.Event{}
@@ -44,8 +48,9 @@ func (s *Shaking) Update(dt float64) {
 // Send listens collision events with player
 func (s *Shaking) Send(ev events.Event) {
 	switch ev.Type() {
-	case events.LeftJustPressedType, events.RightJustPressedType:
+	case events.KeyPressedType:
 		s.events = append(s.events, ev)
 	default:
 	}
+
 }

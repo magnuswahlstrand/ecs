@@ -1,5 +1,9 @@
 package events
 
+import (
+	"github.com/hajimehoshi/ebiten"
+)
+
 type Event interface {
 	Type() EventType
 }
@@ -8,15 +12,15 @@ type Collision struct {
 	entityA, entityB string
 }
 
-type LeftJustPressed struct{}
-type RightJustPressed struct{}
+type KeyPressed struct{ ebiten.Key }
+type KeyJustPressed struct{ ebiten.Key }
 
-func (l LeftJustPressed) Type() EventType  { return LeftJustPressedType }
-func (l RightJustPressed) Type() EventType { return RightJustPressedType }
+func (kp KeyPressed) Type() EventType     { return KeyPressedType }
+func (kp KeyJustPressed) Type() EventType { return KeyJustPressedType }
 
 type EventType string
 
 const (
-	LeftJustPressedType  = "leftJustPressed"
-	RightJustPressedType = "rightJustPressed"
+	KeyJustPressedType = "keyJustPressed"
+	KeyPressedType     = "keyPressed"
 )
