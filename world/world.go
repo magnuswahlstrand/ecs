@@ -10,6 +10,7 @@ import (
 
 	"github.com/kyeett/ecs/blocks"
 	"github.com/kyeett/ecs/camera"
+	"github.com/kyeett/ecs/player"
 	"github.com/kyeett/ecs/rendersystem"
 
 	"github.com/hajimehoshi/ebiten"
@@ -17,7 +18,6 @@ import (
 	"github.com/kyeett/ecs/entity"
 	"github.com/kyeett/ecs/events"
 	"github.com/kyeett/ecs/logging"
-	"github.com/kyeett/ecs/player"
 	"github.com/kyeett/ecs/system"
 	"github.com/sirupsen/logrus"
 )
@@ -43,8 +43,8 @@ func New(width, height int) *World {
 		systems: []system.System{
 			system.NewInput(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			// system.NewRandomInput(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
-			system.NewFriction(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewControls(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
+			system.NewFriction(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewGravity(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewPath(em, logging.NewLogger(logrus.InfoLevel)),
 			system.NewMovement(em, logging.NewLogger(logrus.InfoLevel)),
@@ -65,7 +65,12 @@ func defaultEntities(em *entity.Manager) {
 	// Add a player
 
 	pathID := em.NewEntity("path")
-	em.Add(pathID, components.Path{"line", gfx.Polygon{gfx.V(10, 100), gfx.V(10, 150), gfx.V(70, 150), gfx.V(70, 100), gfx.V(10, 100)}})
+	em.Add(pathID, components.Path{
+		Label:  "line",
+		Points: gfx.Polygon{gfx.V(10, 100), gfx.V(10, 150), gfx.V(70, 150), gfx.V(70, 100), gfx.V(10, 100)},
+		Type:   pathanimation.Polygon,
+	})
+
 	blocks.NewDrawable(em, 0, 100, components.OnPath{
 		Label:     pathID,
 		Speed:     1,
@@ -73,6 +78,22 @@ func defaultEntities(em *entity.Manager) {
 		Mode:      pathanimation.LinearLoop,
 		Direction: 1,
 	})
+
+	pathID = em.NewEntity("path")
+	em.Add(pathID, components.Path{
+		Label:  "ellipse",
+		Points: gfx.Polygon{gfx.V(110, 60), gfx.V(110, 120)},
+		Type:   pathanimation.Ellipse,
+	})
+
+	blocks.NewDrawable(em, 110, 120, components.OnPath{
+		Label:     pathID,
+		Speed:     1,
+		Target:    1,
+		Mode:      pathanimation.LinearLoop,
+		Direction: -1,
+	})
+
 	player.NewDrawable(em)
 }
 

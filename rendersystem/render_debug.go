@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"image/color"
 
+	"github.com/kyeett/gomponents/pathanimation"
+
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 
 	"github.com/peterhellberg/gfx"
@@ -63,8 +65,13 @@ func (r *DebugRender) Update(screen *ebiten.Image) {
 
 	for _, e := range r.em.FilteredEntities(components.PathType) {
 		path := r.em.Path(e)
-		for i := range path.Points[:len(path.Points)-1] {
-			ebitenutil.DrawLine(screen, path.Points[i].X, path.Points[i].Y, path.Points[i+1].X, path.Points[i+1].Y, colornames.Red)
+		switch path.Type {
+		case pathanimation.Polygon:
+			for i := range path.Points[:len(path.Points)-1] {
+				ebitenutil.DrawLine(screen, path.Points[i].X, path.Points[i].Y, path.Points[i+1].X, path.Points[i+1].Y, colornames.Red)
+			}
+		case pathanimation.Ellipse:
+			gfx.DrawCircle(screen, path.Points[0], path.Points[0].Sub(path.Points[1]).Len(), 1.1, colornames.Purple)
 		}
 	}
 }

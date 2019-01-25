@@ -2,6 +2,7 @@ package test
 
 import (
 	"fmt"
+	"math"
 	"testing"
 
 	"github.com/kyeett/gomponents/pathanimation"
@@ -20,7 +21,7 @@ func Test_PathPingPongFast(t *testing.T) {
 	em := entity.NewManager(logging.NewLogger(logrus.DebugLevel))
 
 	pathID := em.NewEntity("path")
-	em.Add(pathID, components.Path{"line", gfx.Polygon{gfx.V(0, 100), gfx.V(100, 100), gfx.V(100, 0)}})
+	em.Add(pathID, components.Path{"line", gfx.Polygon{gfx.V(0, 100), gfx.V(100, 100), gfx.V(100, 0)}, pathanimation.Polygon})
 	path := em.Path(pathID)
 
 	// Set up a block that follows a path
@@ -71,7 +72,7 @@ func Test_PathLoopFast(t *testing.T) {
 	em := entity.NewManager(logging.NewLogger(logrus.DebugLevel))
 
 	pathID := em.NewEntity("path")
-	em.Add(pathID, components.Path{"line", gfx.Polygon{gfx.V(0, 100), gfx.V(100, 100), gfx.V(100, 0)}})
+	em.Add(pathID, components.Path{"line", gfx.Polygon{gfx.V(0, 100), gfx.V(100, 100), gfx.V(100, 0)}, pathanimation.Polygon})
 	path := em.Path(pathID)
 
 	// Set up a block that follows a path
@@ -122,7 +123,7 @@ func Test_PathLoopSlow(t *testing.T) {
 	em := entity.NewManager(logging.NewLogger(logrus.DebugLevel))
 
 	pathID := em.NewEntity("path")
-	em.Add(pathID, components.Path{"line", gfx.Polygon{gfx.V(0, 100), gfx.V(100, 100), gfx.V(100, 0)}})
+	em.Add(pathID, components.Path{"line", gfx.Polygon{gfx.V(0, 100), gfx.V(100, 100), gfx.V(100, 0)}, pathanimation.Polygon})
 	path := em.Path(pathID)
 
 	// Set up a block that follows a path
@@ -173,7 +174,7 @@ func Test_PathSmallSteps(t *testing.T) {
 	em := entity.NewManager(logging.NewLogger(logrus.DebugLevel))
 
 	pathID := em.NewEntity("path")
-	em.Add(pathID, components.Path{"line", gfx.Polygon{gfx.V(0, 100), gfx.V(100, 100), gfx.V(100, 0)}})
+	em.Add(pathID, components.Path{"line", gfx.Polygon{gfx.V(0, 100), gfx.V(100, 100), gfx.V(100, 0)}, pathanimation.Polygon})
 	path := em.Path(pathID)
 
 	// Set up a block that follows a path
@@ -216,6 +217,58 @@ func Test_PathSmallSteps(t *testing.T) {
 		}
 		if onPath.Target != s.expectedTarget {
 			t.Fatalf("expected target to be %d, got %d", s.expectedTarget, onPath.Target)
+		}
+	}
+
+}
+
+func Test_PathEllipse(t *testing.T) {
+	em := entity.NewManager(logging.NewLogger(logrus.DebugLevel))
+
+	pathID := em.NewEntity("path")
+	em.Add(pathID, components.Path{
+		Label:  "ellipse",
+		Points: gfx.Polygon{gfx.V(150, 80), gfx.V(150, 120)},
+		Type:   pathanimation.Ellipse,
+	})
+	path := em.Path(pathID)
+
+	// Set up a block that follows a path
+	r := path.Points[1].Sub(path.Points[0]).Len()
+
+	timeStep := 0.5
+	speed := (2 * r * math.Pi) / 4 / timeStep // speed is 4th of circumference
+	fmt.Println(speed / math.Pi)
+	blockID := blocks.New(em, 150, 120, components.OnPath{
+		Label:     pathID,
+		Speed:     speed,
+		Target:    1,
+		Mode:      pathanimation.LinearLoop,
+		Direction: 1,
+	})
+
+	pathSystem := system.NewPath(em, logging.NewLogger(logrus.DebugLevel))
+	movSystem := system.NewMovement(em, logging.NewLogger(logrus.DebugLevel))
+	pos := em.Pos(blockID)
+	// onPath := em.OnPath(blockID)
+
+	// Move along this path
+	//    0,5
+	//   3O1
+	//    2
+	steps := []gfx.Vec{
+		path.Points[1].Add(gfx.V(-r, -r)),
+		path.Points[1].Add(gfx.V(0, -2*r)),
+		path.Points[1].Add(gfx.V(r, -r)),
+		path.Points[1].Add(gfx.V(0, 0)),
+		path.Points[1].Add(gfx.V(-r, -r)),
+	}
+
+	for _, s := range steps {
+		pathSystem.Update(timeStep)
+		movSystem.Update(timeStep)
+		if !pos.Vec.Eq(s) {
+			t.Fatalf("expected pos=%s, got %s", s, pos.Vec)
 		}
 	}
 }

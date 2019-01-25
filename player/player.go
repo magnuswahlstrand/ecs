@@ -13,7 +13,7 @@ import (
 func New(em *entity.Manager, cs ...interface{}) string {
 	e := em.NewEntity("player")
 	hitbox := gfx.R(0, 0, 18, 22)
-	em.Add(e, components.Pos{Vec: gfx.V(40, 20)})
+	em.Add(e, components.Pos{Vec: gfx.V(100, 20)})
 	em.Add(e, components.Velocity{Vec: gfx.V(0, 0)})
 	em.Add(e, components.Joystick{})
 	em.Add(e, components.NewHitbox(hitbox))
