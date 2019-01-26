@@ -17,8 +17,10 @@ func (w *World) populateWorld() {
 		defaultEntities(w.em)
 	case "single_block":
 		singleBlock(w.em)
-	case "horizontal_platform":
+	case "horizontalplatform":
 		horizontalPlatform(w.em)
+	case "horizontalcollision":
+		horizontalCollision(w.em)
 	case "softcollision":
 		softCollision(w.em)
 	default:
@@ -92,4 +94,11 @@ func softCollision(em *entity.Manager) {
 	blocks.NewDrawable(em, 10, 120)
 	blocks.NewDrawable(em, 10-48+30, 120-64-30)
 	player.NewDrawable(em, 20, 93)
+}
+
+func horizontalCollision(em *entity.Manager) {
+	blocks.NewDrawable(em, 10, 120)
+	blocks.NewDrawable(em, 10+64, 80)
+	blocks.NewDrawable(em, 10-64, 80)
+	player.NewDrawable(em, 40, 80)
 }

@@ -2,6 +2,7 @@ package system
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/SolarLune/resolv/resolv"
 	"github.com/kyeett/ecs/entity"
@@ -56,20 +57,12 @@ func (m *Movement) Update(dt float64) {
 func (m *Movement) movePlayer(dt float64) {
 	playerID := "player_1"
 
-	// Add DT
-	pos := m.em.Pos(playerID)
-	fmt.Println("before", pos)
 	collided, possibleMove := checkCollisionY(playerID, m.em)
-	fmt.Println("after", pos)
+	pos := m.em.Pos(playerID)
 	v := m.em.Velocity(playerID)
 	hb := m.em.Hitbox(playerID)
 	switch collided {
 	case true:
-		fmt.Println("hard collision for", playerID)
-		fmt.Println(possibleMove, hb.Moved(pos.Vec), pos)
-		if v.Y < 0 {
-			// time.Sleep(10 * time.Second)
-		}
 		pos.Y += possibleMove
 		v.Y = 0
 
@@ -78,90 +71,106 @@ func (m *Movement) movePlayer(dt float64) {
 		// fmt.Println("no collision for", playerID)
 	}
 
+	collided, possibleMove = checkCollisionX(playerID, m.em)
+	switch collided {
+	case true:
+		fmt.Println("hard collision for", playerID)
+		fmt.Println(possibleMove, hb.Moved(pos.Vec), pos)
+		pos.X += possibleMove
+		v.X = 0
+	default:
+		pos.X += v.X
+	}
+
 }
 
-func (m *Movement) movePlayer2(dt float64) {
-	playerID := "player_1"
+// checkCollisionY uses raycasting in at left, center, and right of hitbox to determine collision
+func checkCollisionY(e string, em *entity.Manager) (bool, float64) {
+	v := em.Velocity(e)
+	if v.Y == 0 {
+		return false, -1
+	}
 
-	// Create space
-	var space resolv.Space
-	for _, e := range m.em.FilteredEntities(components.HitboxType) {
-		if e == playerID {
+	movingUp := v.Y < 0
+	sourceHitbox := movedHitbox(e, em)
+
+	var collisions [3]float64
+	var rays []gfx.Vec
+	if movingUp {
+		rays = rayVectors(sourceHitbox.Min.AddXY(0, v.Y), sourceHitbox.W())
+		collisions = [3]float64{math.MaxFloat64, math.MaxFloat64, math.MaxFloat64}
+	} else {
+		rays = rayVectors(sourceHitbox.Max.AddXY(-sourceHitbox.W(), v.Y), sourceHitbox.W())
+		collisions = [3]float64{-math.MaxFloat64, -math.MaxFloat64, -math.MaxFloat64}
+	}
+
+	var hardCollision bool
+	for _, t := range em.FilteredEntities(components.HitboxType) {
+		if t == e {
 			continue
 		}
-		pos := m.em.Pos(e)
-		hb := m.em.Hitbox(e)
-		hbMoved := hb.Moved(pos.Vec)
-		r := resolvRectangle(hbMoved)
-		r.SetTags(e)
-		space.AddShape(r)
+		targetHitbox := movedHitbox(t, em)
+
+		for i, r := range rays {
+			if targetHitbox.Contains(r) {
+				if movingUp {
+					collisions[i] = min(targetHitbox.Max.Y-sourceHitbox.Min.Y+0.1, collisions[i])
+					hardCollision = true
+				} else {
+					collisions[i] = max(targetHitbox.Min.Y-sourceHitbox.Max.Y-0.1, collisions[i])
+					hardCollision = true
+				}
+			}
+		}
 	}
 
-	pos := m.em.Pos(playerID)    //Todo, remove hardcoding?
-	v := m.em.Velocity(playerID) //Todo, remove hardcoding?
-	hb := m.em.Hitbox(playerID)
-
-	parentVelocity := gfx.ZV
-	if m.em.HasComponents(playerID, components.ParentedType) {
-		parented := m.em.Parented(playerID)
-		parentVelocity = m.em.Velocity(parented.ID).Vec
+	var possibleMove float64
+	if hardCollision {
+		if movingUp {
+			possibleMove = min(min(collisions[2], collisions[1]), collisions[0])
+		} else {
+			possibleMove = max(max(collisions[2], collisions[1]), collisions[0])
+		}
 	}
+	return hardCollision, possibleMove
+}
 
-	// Check y
+func checkCollisionX(e string, em *entity.Manager) (bool, float64) {
+	v := em.Velocity(e)
+	if v.X == 0 {
+		return false, -1
+	}
+	sourceHitbox := movedHitbox(e, em).Moved(gfx.V(v.X, 0))
 
-	// Round to whole int steps
-	tX, tY := pos.Add(v.Vec.Add(parentVelocity).Scaled(dt)).XY()
-	rX, rY := int32(tX), int32(tY)
-
-	pX, pY := pos.XY()
-	rPX, rPY := int32(pX), int32(pY)
-
-	r := resolvRectangle(hb.Moved(pos.Vec))
-
-	for _, e := range m.em.FilteredEntities(components.HitboxType) {
-		if e == playerID {
+	var hardCollision bool
+	zeroRect := gfx.Rect{}
+	for _, t := range em.FilteredEntities(components.HitboxType, components.PosType) {
+		if t == e {
 			continue
 		}
-		// pos := m.em.Pos(e)
-		// hb := m.em.Hitbox(e)
-		// hbMoved := hb.Moved(pos.Vec)
-		// r := resolvRectangle(hbMoved)
-		// r.SetTags(e)
-		// space.AddShape(r)
-		//
-
-		// Check for collision with rays
-	}
-
-	if res := space.Resolve(r, 0, rY-rPY); res.Colliding() && !res.Teleporting {
-		collidingOnTop := v.Y > 0
-		v.Y = 0
-
-		// If landing on top, mark colliding entity as parent
-		if collidingOnTop {
-			collidingID := res.ShapeB.GetTags()[0]
-			hbColl := m.em.Hitbox(collidingID).Moved(m.em.Pos(collidingID).Vec)
-			cV := m.em.Velocity(collidingID)
-
-			// Set pos to closest non-colliding position
-			fmt.Printf("add colliding, resolv=%v, playerhb=%v, collidedHB=%v\n", res.ResolveY, hb.Moved(pos.Vec), hbColl)
-			pos.Y += hbColl.Min.Sub(hb.Moved(pos.Vec).Max).Y
-
-			// Mark colliding as parent!
-			m.em.Add(playerID, components.Parented{ID: collidingID})
-			v.X -= cV.X
+		targetHitbox := movedHitbox(t, em)
+		intersection := sourceHitbox.Intersect(targetHitbox)
+		if intersection != zeroRect {
+			hardCollision = true
 		}
-
-	} else {
-		pos.Y += (v.Y + parentVelocity.Y) * dt
-		r.Move(0, rY-rPY) //FIXME, is this correct?
 	}
 
-	if res := space.Resolve(r, rX-rPX, 0); res.Colliding() && !res.Teleporting {
-		v.X = 0
-	} else {
-		pos.X += (v.X + parentVelocity.X) * dt
+	var possibleMove float64
+	return hardCollision, possibleMove
+}
+
+func min(a, b float64) float64 {
+	if b < a {
+		return b
 	}
+	return a
+}
+
+func max(a, b float64) float64 {
+	if b > a {
+		return b
+	}
+	return a
 }
 
 // Send is an empty method to implement the System interface
