@@ -57,6 +57,7 @@ func (r *Parenting) Update(dt float64) {
 	}
 }
 
+// Returns the hitbox of an entity moved to the entity position
 func movedHitbox(e string, em *entity.Manager) gfx.Rect {
 	pos := em.Pos(e)
 	hb := em.Hitbox(e)
