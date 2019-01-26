@@ -54,8 +54,8 @@ func (m *Movement) Update(dt float64) {
 }
 
 func (m *Movement) movePlayer(dt float64) {
-
 	playerID := "player_1"
+
 	// Create space
 	var space resolv.Space
 	for _, e := range m.em.FilteredEntities(components.HitboxType) {
@@ -78,9 +78,6 @@ func (m *Movement) movePlayer(dt float64) {
 	if m.em.HasComponents(playerID, components.ParentedType) {
 		parented := m.em.Parented(playerID)
 		parentVelocity = m.em.Velocity(parented.ID).Vec
-		if parentVelocity.Y < -0.5 {
-			// time.Sleep(1 * time.Second)
-		}
 	}
 
 	// Round to whole int steps
@@ -92,12 +89,8 @@ func (m *Movement) movePlayer(dt float64) {
 
 	r := resolvRectangle(hb.Moved(pos.Vec))
 
-	// if rY-rPY != 0 {
 	if res := space.Resolve(r, 0, rY-rPY); res.Colliding() && !res.Teleporting {
-		// fmt.Println("Y Colliding", res.ShapeB.GetTags(), v.Y, res.ResolveY)
-
 		collidingOnTop := v.Y > 0
-
 		v.Y = 0
 
 		// If landing on top, mark colliding entity as parent
@@ -106,10 +99,8 @@ func (m *Movement) movePlayer(dt float64) {
 			hbColl := m.em.Hitbox(collidingID).Moved(m.em.Pos(collidingID).Vec)
 			cV := m.em.Velocity(collidingID)
 
-			// Set pos to upper limit
+			// Set pos to closest non-colliding position
 			fmt.Printf("add colliding, resolv=%v, playerhb=%v, collidedHB=%v\n", res.ResolveY, hb.Moved(pos.Vec), hbColl)
-			// time.Sleep(15 * time.Second)
-			// pos.Y += float64(res.ResolveY)
 			pos.Y += hbColl.Min.Sub(hb.Moved(pos.Vec).Max).Y
 
 			// Mark colliding as parent!
@@ -118,17 +109,14 @@ func (m *Movement) movePlayer(dt float64) {
 		}
 
 	} else {
-		// fmt.Println("Y OK!", res.Colliding(), res.Teleporting)
 		pos.Y += (v.Y + parentVelocity.Y) * dt
 		r.Move(0, rY-rPY) //FIXME, is this correct?
 	}
 
 	if res := space.Resolve(r, rX-rPX, 0); res.Colliding() && !res.Teleporting {
-		// fmt.Println("X Colliding with", res.ShapeB.GetTags())
 		v.X = 0
 	} else {
 		pos.X += (v.X + parentVelocity.X) * dt
-		// fmt.Println("X OK!", res.Colliding(), res.Teleporting)
 	}
 }
 

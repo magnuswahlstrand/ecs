@@ -37,25 +37,35 @@ func NewDebugRender(em *entity.Manager, logger logging.Logger) *DebugRender {
 }
 
 const (
-	mask     = false
-	hitboxes = false
+	mask     = true
+	hitboxes = true
 	paths    = false
-	rays     = false
+	rays     = true
 	text     = false
 )
 
 // Update the DebugRender system
 func (r *DebugRender) Update(screen *ebiten.Image) {
 
-	r.drawBlackmask(screen)
+	if mask {
+		r.drawBlackmask(screen)
+	}
 
-	r.drawHitboxes(screen)
+	if hitboxes {
+		r.drawHitboxes(screen)
+	}
+
+	if text {
+		r.drawText(screen)
+	}
 
 	if paths {
 		r.drawPaths(screen)
 	}
 
-	r.drawRays(screen)
+	if rays {
+		r.drawRays(screen)
+	}
 }
 
 func (r *DebugRender) drawBlackmask(screen *ebiten.Image) {
@@ -76,12 +86,15 @@ func (r *DebugRender) drawHitboxes(screen *ebiten.Image) {
 			hb := r.em.Hitbox(e)
 			drawRect(screen, hb.Rect.Moved(pos.Vec), colornames.Orange)
 		}
+	}
+}
 
-		if text && r.em.HasComponents(e, components.VelocityType) {
-			v := r.em.Velocity(e)
-			ebitenutil.DebugPrintAt(screen, fmt.Sprintf("xV: %0.2f", v.X), pos.Pt().X, pos.Pt().Y-15)
-			ebitenutil.DebugPrintAt(screen, fmt.Sprintf("yV: %0.2f", v.Y), pos.Pt().X, pos.Pt().Y)
-		}
+func (r *DebugRender) drawText(screen *ebiten.Image) {
+	for _, e := range r.em.FilteredEntities(components.PosType, components.VelocityType) {
+		pos := r.em.Pos(e)
+		v := r.em.Velocity(e)
+		ebitenutil.DebugPrintAt(screen, fmt.Sprintf("xV: %0.2f", v.X), pos.Pt().X, pos.Pt().Y-15)
+		ebitenutil.DebugPrintAt(screen, fmt.Sprintf("yV: %0.2f", v.Y), pos.Pt().X, pos.Pt().Y)
 	}
 }
 
