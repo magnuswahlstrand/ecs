@@ -19,6 +19,8 @@ func (w *World) populateWorld() {
 		singleBlock(w.em)
 	case "horizontal_platform":
 		horizontalPlatform(w.em)
+	case "softcollision":
+		softCollision(w.em)
 	default:
 		log.Fatal("not a valid world")
 	}
@@ -83,5 +85,11 @@ func horizontalPlatform(em *entity.Manager) {
 
 func singleBlock(em *entity.Manager) {
 	blocks.NewDrawable(em, 10, 120)
+	player.NewDrawable(em, 20, 80)
+}
+
+func softCollision(em *entity.Manager) {
+	blocks.NewDrawable(em, 10, 120)
+	blocks.NewDrawable(em, 10-48, 120-64-30)
 	player.NewDrawable(em, 20, 80)
 }
