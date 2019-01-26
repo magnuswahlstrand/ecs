@@ -3,6 +3,7 @@ package system
 import (
 	"fmt"
 	"math"
+	"sort"
 
 	"github.com/SolarLune/resolv/resolv"
 	"github.com/kyeett/ecs/entity"
@@ -57,51 +58,75 @@ func (m *Movement) Update(dt float64) {
 func (m *Movement) movePlayer(dt float64) {
 	playerID := "player_1"
 
-	collided, possibleMove := checkCollisionY(playerID, m.em)
+	collided, possibleMove, collidingID := checkCollisionY(playerID, m.em, dt)
 	pos := m.em.Pos(playerID)
 	v := m.em.Velocity(playerID)
-	hb := m.em.Hitbox(playerID)
+	// hb := m.em.Hitbox(playerID)
 	switch collided {
 	case true:
 		pos.Y += possibleMove
+		movingDownward := v.Y > 0
 		v.Y = 0
 
+		// If landing on top, mark colliding entity as parent
+		if movingDownward {
+			fmt.Println(collidingID, movingDownward)
+
+			// Mark colliding as parent!
+			m.em.Add(playerID, components.Parented{ID: collidingID})
+			// cV := m.em.Velocity(collidingID)
+			// v.X -= cV.X
+		}
+
 	default:
-		pos.Y += v.Y
-		// fmt.Println("no collision for", playerID)
+		pos.Y += v.Y * dt
 	}
 
-	collided, possibleMove = checkCollisionX(playerID, m.em)
+	collided, possibleMove = checkCollisionX(playerID, m.em, dt)
+	// pos.X += possibleMove
+
 	switch collided {
 	case true:
-		fmt.Println("hard collision for", playerID)
-		fmt.Println(possibleMove, hb.Moved(pos.Vec), pos)
 		pos.X += possibleMove
+		fmt.Println("collision X, moving", possibleMove)
 		v.X = 0
 	default:
-		pos.X += v.X
+		fmt.Println("no collision X, moving", v.X)
+		pos.X += v.X * dt
 	}
 
 }
 
+type CollisionResult struct {
+	ID   string
+	move float64
+}
+
 // checkCollisionY uses raycasting in at left, center, and right of hitbox to determine collision
-func checkCollisionY(e string, em *entity.Manager) (bool, float64) {
-	v := em.Velocity(e)
-	if v.Y == 0 {
-		return false, -1
+func checkCollisionY(e string, em *entity.Manager, dt float64) (bool, float64, string) {
+	parentVelocity := gfx.ZV
+	if em.HasComponents(e, components.ParentedType) {
+		parented := em.Parented(e)
+		parentVelocity = em.Velocity(parented.ID).Vec
 	}
 
-	movingUp := v.Y < 0
+	v := em.Velocity(e)
+	totV := v.Add(parentVelocity).Scaled(dt)
+	if totV.Y == 0 {
+		return false, 0, ""
+	}
+
+	movingUp := totV.Y < 0
 	sourceHitbox := movedHitbox(e, em)
 
-	var collisions [3]float64
+	var collisions []CollisionResult
 	var rays []gfx.Vec
 	if movingUp {
-		rays = rayVectors(sourceHitbox.Min.AddXY(0, v.Y), sourceHitbox.W())
-		collisions = [3]float64{math.MaxFloat64, math.MaxFloat64, math.MaxFloat64}
+		rays = rayVectors(sourceHitbox.Min.AddXY(0, totV.Y), sourceHitbox.W())
+		collisions = []CollisionResult{{"", math.MaxFloat64}, {"", math.MaxFloat64}, {"", math.MaxFloat64}}
 	} else {
-		rays = rayVectors(sourceHitbox.Max.AddXY(-sourceHitbox.W(), v.Y), sourceHitbox.W())
-		collisions = [3]float64{-math.MaxFloat64, -math.MaxFloat64, -math.MaxFloat64}
+		rays = rayVectors(sourceHitbox.Max.AddXY(-sourceHitbox.W(), totV.Y), sourceHitbox.W())
+		collisions = []CollisionResult{{"", -math.MaxFloat64}, {"", -math.MaxFloat64}, {"", -math.MaxFloat64}}
 	}
 
 	var hardCollision bool
@@ -114,35 +139,57 @@ func checkCollisionY(e string, em *entity.Manager) (bool, float64) {
 		for i, r := range rays {
 			if targetHitbox.Contains(r) {
 				if movingUp {
-					collisions[i] = min(targetHitbox.Max.Y-sourceHitbox.Min.Y+0.1, collisions[i])
+					y := targetHitbox.Max.Y - sourceHitbox.Min.Y + 0.1
+					if y < collisions[i].move {
+						collisions[i].move = y
+						collisions[i].ID = t
+					}
+
 					hardCollision = true
 				} else {
-					collisions[i] = max(targetHitbox.Min.Y-sourceHitbox.Max.Y-0.1, collisions[i])
+					y := targetHitbox.Min.Y - sourceHitbox.Max.Y - 0.1
+					if y > collisions[i].move {
+						collisions[i].move = y
+						collisions[i].ID = t
+					}
 					hardCollision = true
 				}
 			}
 		}
 	}
 
-	var possibleMove float64
 	if hardCollision {
 		if movingUp {
-			possibleMove = min(min(collisions[2], collisions[1]), collisions[0])
+			sort.Slice(collisions, func(i int, j int) bool {
+				return collisions[i].move < collisions[j].move
+			})
 		} else {
-			possibleMove = max(max(collisions[2], collisions[1]), collisions[0])
+			sort.Slice(collisions, func(i int, j int) bool {
+				return collisions[i].move > collisions[j].move
+			})
 		}
 	}
-	return hardCollision, possibleMove
+	return hardCollision, collisions[0].move, collisions[0].ID
 }
 
-func checkCollisionX(e string, em *entity.Manager) (bool, float64) {
-	v := em.Velocity(e)
-	if v.X == 0 {
-		return false, -1
+func checkCollisionX(e string, em *entity.Manager, dt float64) (bool, float64) {
+	parentVelocity := gfx.ZV
+	// var parentedBool bool
+	if em.HasComponents(e, components.ParentedType) {
+		parented := em.Parented(e)
+		parentVelocity = em.Velocity(parented.ID).Vec
+		// parentedBool = true
 	}
-	sourceHitbox := movedHitbox(e, em).Moved(gfx.V(v.X, 0))
 
-	var hardCollision bool
+	v := em.Velocity(e)
+	totV := v.Add(parentVelocity).Scaled(dt)
+	// fmt.Println("parented!", v, totV, parentedBool)
+	if totV.X == 0 {
+		return false, 0
+	}
+	sourceHitbox := movedHitbox(e, em).Moved(gfx.V(totV.X, 0))
+
+	// var hardCollision bool
 	zeroRect := gfx.Rect{}
 	for _, t := range em.FilteredEntities(components.HitboxType, components.PosType) {
 		if t == e {
@@ -151,12 +198,14 @@ func checkCollisionX(e string, em *entity.Manager) (bool, float64) {
 		targetHitbox := movedHitbox(t, em)
 		intersection := sourceHitbox.Intersect(targetHitbox)
 		if intersection != zeroRect {
-			hardCollision = true
+			// hardCollision = true
+			return true, 0
 		}
 	}
 
-	var possibleMove float64
-	return hardCollision, possibleMove
+	// var possibleMove float64
+	// fmt.Println(hardCollision, possibleMove, collis)
+	return false, totV.X * 0.9
 }
 
 func min(a, b float64) float64 {

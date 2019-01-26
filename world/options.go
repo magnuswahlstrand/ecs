@@ -1,6 +1,7 @@
 package world
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/kyeett/ecs/blocks"
@@ -72,7 +73,7 @@ func horizontalPlatform(em *entity.Manager) {
 		Type:   pathanimation.Polygon,
 	})
 
-	blocks.NewDrawable(em, 10, 120, components.OnPath{
+	blocks.NewDrawable(em, 10, 110, components.OnPath{
 		Label:     pathID,
 		Speed:     1,
 		Target:    1,
@@ -81,8 +82,8 @@ func horizontalPlatform(em *entity.Manager) {
 	})
 
 	blocks.NewDrawable(em, 110, 40)
-
-	player.NewDrawable(em, 20, 40)
+	player.NewDrawable(em, 40, 40)
+	fmt.Println(em.Velocity("player_1"))
 }
 
 func singleBlock(em *entity.Manager) {
