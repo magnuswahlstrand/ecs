@@ -18,7 +18,7 @@ import (
 
 func Test_MovingPlatform(t *testing.T) {
 	em := entity.NewManager(logging.NewLogger(logrus.DebugLevel))
-	playerID := player.New(em)
+	playerID := player.New(em, 20, 10)
 	v := em.Velocity(playerID)
 	v.Y = 9.0
 

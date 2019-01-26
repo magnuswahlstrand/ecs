@@ -56,6 +56,37 @@ func (m *Movement) Update(dt float64) {
 func (m *Movement) movePlayer(dt float64) {
 	playerID := "player_1"
 
+	var collided bool
+	for _, e := range m.em.FilteredEntities(components.HitboxType) {
+		if e == playerID {
+			continue
+		}
+
+		hard, _ := checkCollisionY(playerID, e, m.em)
+		if hard {
+			collided = true
+			break
+		}
+	}
+
+	switch collided {
+	case true:
+		fmt.Println("hard collision for", playerID)
+
+	default:
+		v := m.em.Velocity(playerID)
+		pos := m.em.Pos(playerID)
+		pos.Y += v.Y
+		fmt.Println(pos, v)
+
+		fmt.Println("no collision for", playerID)
+	}
+
+}
+
+func (m *Movement) movePlayer2(dt float64) {
+	playerID := "player_1"
+
 	// Create space
 	var space resolv.Space
 	for _, e := range m.em.FilteredEntities(components.HitboxType) {
@@ -80,6 +111,8 @@ func (m *Movement) movePlayer(dt float64) {
 		parentVelocity = m.em.Velocity(parented.ID).Vec
 	}
 
+	// Check y
+
 	// Round to whole int steps
 	tX, tY := pos.Add(v.Vec.Add(parentVelocity).Scaled(dt)).XY()
 	rX, rY := int32(tX), int32(tY)
@@ -88,6 +121,21 @@ func (m *Movement) movePlayer(dt float64) {
 	rPX, rPY := int32(pX), int32(pY)
 
 	r := resolvRectangle(hb.Moved(pos.Vec))
+
+	for _, e := range m.em.FilteredEntities(components.HitboxType) {
+		if e == playerID {
+			continue
+		}
+		// pos := m.em.Pos(e)
+		// hb := m.em.Hitbox(e)
+		// hbMoved := hb.Moved(pos.Vec)
+		// r := resolvRectangle(hbMoved)
+		// r.SetTags(e)
+		// space.AddShape(r)
+		//
+
+		// Check for collision with rays
+	}
 
 	if res := space.Resolve(r, 0, rY-rPY); res.Colliding() && !res.Teleporting {
 		collidingOnTop := v.Y > 0
