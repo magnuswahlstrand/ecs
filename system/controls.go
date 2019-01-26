@@ -2,6 +2,7 @@ package system
 
 import (
 	"github.com/hajimehoshi/ebiten"
+	"github.com/kyeett/ecs/constants"
 	"github.com/kyeett/ecs/entity"
 	"github.com/kyeett/ecs/events"
 	"github.com/kyeett/ecs/logging"
@@ -45,10 +46,10 @@ func (c *Controls) Update(dt float64) {
 
 				switch val.Key {
 				case ebiten.KeyLeft:
-					v.Vec = v.Add(gfx.V(-0.2, 0))
+					v.Vec = v.Add(gfx.V(-constants.AccelerationX, 0))
 
 				case ebiten.KeyRight:
-					v.Vec = v.Add(gfx.V(0.2, 0))
+					v.Vec = v.Add(gfx.V(constants.AccelerationX, 0))
 				}
 			}
 		}

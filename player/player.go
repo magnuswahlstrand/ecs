@@ -10,10 +10,10 @@ import (
 	"github.com/peterhellberg/gfx"
 )
 
-func New(em *entity.Manager, cs ...interface{}) string {
+func New(em *entity.Manager, x, y float64, cs ...interface{}) string {
 	e := em.NewEntity("player")
 	hitbox := gfx.R(0, 0, 18, 22)
-	em.Add(e, components.Pos{Vec: gfx.V(100, 20)})
+	em.Add(e, components.Pos{Vec: gfx.V(x, y)})
 	em.Add(e, components.Velocity{Vec: gfx.V(0, 0)})
 	em.Add(e, components.Joystick{})
 	em.Add(e, components.NewHitbox(hitbox))
@@ -21,7 +21,7 @@ func New(em *entity.Manager, cs ...interface{}) string {
 	return e
 }
 
-func NewDrawable(em *entity.Manager, cs ...interface{}) {
+func NewDrawable(em *entity.Manager, x, y float64, cs ...interface{}) {
 	tmp, err := gfx.OpenPNG("assets/images/platformer2.png")
 	if err != nil {
 		log.Fatal(err)
@@ -29,5 +29,5 @@ func NewDrawable(em *entity.Manager, cs ...interface{}) {
 	pImage, _ := ebiten.NewImageFromImage(tmp, ebiten.FilterDefault)
 
 	cs = append(cs, components.Drawable{pImage.SubImage(image.Rect(5, 10, 27, 32)).(*ebiten.Image)})
-	New(em, cs...)
+	New(em, x, y, cs...)
 }

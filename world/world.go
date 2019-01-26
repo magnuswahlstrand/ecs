@@ -3,14 +3,8 @@ package world
 import (
 	"errors"
 
-	"github.com/peterhellberg/gfx"
-
-	"github.com/kyeett/gomponents/components"
-	"github.com/kyeett/gomponents/pathanimation"
-
-	"github.com/kyeett/ecs/blocks"
 	"github.com/kyeett/ecs/camera"
-	"github.com/kyeett/ecs/player"
+	"github.com/kyeett/ecs/constants"
 	"github.com/kyeett/ecs/rendersystem"
 
 	"github.com/hajimehoshi/ebiten"
@@ -28,23 +22,19 @@ type World struct {
 	systems       []system.System
 	renderSystems []rendersystem.System
 	em            *entity.Manager
+	mapName       string
 }
 
-const defaultTimeStep = 1.0
-
-func New(width, height int) *World {
+func New(m string, width, height int) *World {
 	em := entity.NewManager(logging.NewLogger())
-
-	defaultEntities(em)
-
 	eventCh := make(chan events.Event, 100)
-	return &World{
+	w := World{
 		eventCh: eventCh,
 		systems: []system.System{
 			system.NewInput(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			// system.NewRandomInput(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
-			system.NewControls(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewFriction(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
+			system.NewControls(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewGravity(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewPath(em, logging.NewLogger(logrus.InfoLevel)),
 			system.NewParenting(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
@@ -55,52 +45,20 @@ func New(width, height int) *World {
 		renderSystems: []rendersystem.System{
 			rendersystem.NewRenderImage("assets/images/background.png", logging.NewLogger()),
 			rendersystem.NewRender(em, logging.NewLogger()),
-			rendersystem.NewDebugRender(em, logging.NewLogger()),
+			// rendersystem.NewDebugRender(em, logging.NewLogger()),
 		},
-		camera: camera.New(em, width, height),
-		em:     em,
+		camera:  camera.New(em, width, height),
+		em:      em,
+		mapName: m,
 	}
-}
-
-func defaultEntities(em *entity.Manager) {
-	// Add a player
-
-	pathID := em.NewEntity("path")
-	em.Add(pathID, components.Path{
-		Label:  "line",
-		Points: gfx.Polygon{gfx.V(10, 100), gfx.V(10, 150), gfx.V(70, 150), gfx.V(70, 100), gfx.V(10, 100)},
-		Type:   pathanimation.Polygon,
-	})
-
-	blocks.NewDrawable(em, 0, 100, components.OnPath{
-		Label:     pathID,
-		Speed:     1,
-		Target:    1,
-		Mode:      pathanimation.LinearLoop,
-		Direction: 1,
-	})
-
-	pathID = em.NewEntity("path")
-	em.Add(pathID, components.Path{
-		Label:  "ellipse",
-		Points: gfx.Polygon{gfx.V(110, 60), gfx.V(110, 120)},
-		Type:   pathanimation.Ellipse,
-	})
-	blocks.NewDrawable(em, 110, 120, components.OnPath{
-		Label:     pathID,
-		Speed:     1,
-		Target:    1,
-		Mode:      pathanimation.LinearLoop,
-		Direction: 1,
-	})
-
-	player.NewDrawable(em)
+	w.populateWorld()
+	return &w
 }
 
 func (w *World) Reset() {
 	w.em.Reset()
 	w.camera.Reset()
-	defaultEntities(w.em)
+	w.populateWorld()
 }
 
 func (w *World) StartEventQueue() {
@@ -114,7 +72,7 @@ func (w *World) StartEventQueue() {
 	}()
 }
 
-var timeStep = defaultTimeStep
+var timeStep = constants.DefaultTimeStep
 
 func (w *World) Update(screen *ebiten.Image) error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyTab) {
@@ -126,7 +84,7 @@ func (w *World) Update(screen *ebiten.Image) error {
 	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
-		timeStep = defaultTimeStep - timeStep
+		timeStep = constants.DefaultTimeStep - timeStep
 	}
 
 	for _, s := range w.systems {

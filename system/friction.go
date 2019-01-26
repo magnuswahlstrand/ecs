@@ -1,6 +1,7 @@
 package system
 
 import (
+	"github.com/kyeett/ecs/constants"
 	"github.com/kyeett/ecs/entity"
 	"github.com/kyeett/ecs/events"
 	"github.com/kyeett/ecs/logging"
@@ -26,9 +27,9 @@ func NewFriction(em *entity.Manager, ch chan events.Event, logger logging.Logger
 func (f *Friction) Update(dt float64) {
 	for _, e := range f.em.FilteredEntities(components.VelocityType) {
 
+		v := f.em.Velocity(e)
+		v.Vec = v.ScaledXY(gfx.V(1-constants.FrictionX*dt, 1-constants.FrictionY*dt))
 		if f.em.HasComponents(e, components.ParentedType) {
-			v := f.em.Velocity(e)
-			v.Vec = v.ScaledXY(gfx.V(0.9, 0.9))
 		}
 	}
 }
