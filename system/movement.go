@@ -29,6 +29,10 @@ func resolvRectangle(r gfx.Rect) *resolv.Rectangle {
 	return resolv.NewRectangle(int32(r.Min.X), int32(r.Min.Y), int32(r.W()), int32(r.H()))
 }
 
+func resolvLine(v1, v2 gfx.Vec) *resolv.Line {
+	return resolv.NewLine(int32(v1.X), int32(v1.Y), int32(v1.X), int32(v1.Y))
+}
+
 // Update the movement system
 func (m *Movement) Update(dt float64) {
 	if dt == 0.0 {
@@ -90,7 +94,7 @@ func (m *Movement) movePlayer(dt float64) {
 
 	// if rY-rPY != 0 {
 	if res := space.Resolve(r, 0, rY-rPY); res.Colliding() && !res.Teleporting {
-		fmt.Println("Y Colliding", res.ShapeB.GetTags(), v.Y, res.ResolveY)
+		// fmt.Println("Y Colliding", res.ShapeB.GetTags(), v.Y, res.ResolveY)
 
 		collidingOnTop := v.Y > 0
 
@@ -114,7 +118,7 @@ func (m *Movement) movePlayer(dt float64) {
 		}
 
 	} else {
-		fmt.Println("Y OK!", res.Colliding(), res.Teleporting)
+		// fmt.Println("Y OK!", res.Colliding(), res.Teleporting)
 		pos.Y += (v.Y + parentVelocity.Y) * dt
 		r.Move(0, rY-rPY) //FIXME, is this correct?
 	}
