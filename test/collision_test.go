@@ -92,7 +92,6 @@ func Test_Collision(t *testing.T) {
 	// Remove and try again
 	em.Remove(blockID, components.HitboxType)
 	movSystem.Update(1)
-
 	if !pos.Eq(initial) {
 		t.Fatalf("expected %s, got %s", expected, pos.Vec)
 	}

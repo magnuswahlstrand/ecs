@@ -56,30 +56,26 @@ func (m *Movement) Update(dt float64) {
 func (m *Movement) movePlayer(dt float64) {
 	playerID := "player_1"
 
-	var collided bool
-	for _, e := range m.em.FilteredEntities(components.HitboxType) {
-		if e == playerID {
-			continue
-		}
-
-		hard, _ := checkCollisionY(playerID, e, m.em)
-		if hard {
-			collided = true
-			break
-		}
-	}
-
+	// Add DT
+	pos := m.em.Pos(playerID)
+	fmt.Println("before", pos)
+	collided, possibleMove := checkCollisionY(playerID, m.em)
+	fmt.Println("after", pos)
+	v := m.em.Velocity(playerID)
+	hb := m.em.Hitbox(playerID)
 	switch collided {
 	case true:
 		fmt.Println("hard collision for", playerID)
+		fmt.Println(possibleMove, hb.Moved(pos.Vec), pos)
+		if v.Y < 0 {
+			// time.Sleep(10 * time.Second)
+		}
+		pos.Y += possibleMove
+		v.Y = 0
 
 	default:
-		v := m.em.Velocity(playerID)
-		pos := m.em.Pos(playerID)
 		pos.Y += v.Y
-		fmt.Println(pos, v)
-
-		fmt.Println("no collision for", playerID)
+		// fmt.Println("no collision for", playerID)
 	}
 
 }

@@ -85,11 +85,11 @@ func horizontalPlatform(em *entity.Manager) {
 
 func singleBlock(em *entity.Manager) {
 	blocks.NewDrawable(em, 10, 120)
-	player.NewDrawable(em, 20, 80)
+	player.NewDrawable(em, 70, 80)
 }
 
 func softCollision(em *entity.Manager) {
 	blocks.NewDrawable(em, 10, 120)
-	blocks.NewDrawable(em, 10-48, 120-64-30)
-	player.NewDrawable(em, 20, 80)
+	blocks.NewDrawable(em, 10-48+30, 120-64-30)
+	player.NewDrawable(em, 20, 93)
 }

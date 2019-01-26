@@ -45,7 +45,7 @@ func New(m string, width, height int) *World {
 		renderSystems: []rendersystem.System{
 			rendersystem.NewRenderImage("assets/images/background.png", logging.NewLogger()),
 			rendersystem.NewRender(em, logging.NewLogger()),
-			// rendersystem.NewDebugRender(em, logging.NewLogger()),
+			rendersystem.NewDebugRender(em, logging.NewLogger()),
 		},
 		camera:  camera.New(em, width, height),
 		em:      em,
