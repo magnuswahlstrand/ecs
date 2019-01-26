@@ -47,6 +47,7 @@ func New(width, height int) *World {
 			system.NewFriction(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewGravity(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewPath(em, logging.NewLogger(logrus.InfoLevel)),
+			system.NewParenting(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewMovement(em, logging.NewLogger(logrus.InfoLevel)),
 			system.NewFollow(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			// system.NewShaking(em, logging.NewLogger(logrus.DebugLevel)),
@@ -54,7 +55,7 @@ func New(width, height int) *World {
 		renderSystems: []rendersystem.System{
 			rendersystem.NewRenderImage("assets/images/background.png", logging.NewLogger()),
 			rendersystem.NewRender(em, logging.NewLogger()),
-			// rendersystem.NewDebugRender(em, logging.NewLogger()),
+			rendersystem.NewDebugRender(em, logging.NewLogger()),
 		},
 		camera: camera.New(em, width, height),
 		em:     em,
@@ -89,7 +90,7 @@ func defaultEntities(em *entity.Manager) {
 		Label:     pathID,
 		Speed:     1,
 		Target:    1,
-		Mode:      pathanimation.LinearPingPong,
+		Mode:      pathanimation.LinearLoop,
 		Direction: 1,
 	})
 
