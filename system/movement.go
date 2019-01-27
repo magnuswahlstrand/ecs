@@ -1,7 +1,6 @@
 package system
 
 import (
-	"fmt"
 	"math"
 	"sort"
 
@@ -129,10 +128,9 @@ func (m *Movement) checkCollisionY(e string, dt float64) (bool, bool, float64, s
 		}
 
 		targetHitbox := movedHitbox(t, m.em)
-		fmt.Println(m.em.Hitbox(t).BlockedDirections, ",", m.em.Hitbox(t).BlockedDirections|direction.Up)
 		hitboxBlocksDown := (m.em.Hitbox(t).BlockedDirections & direction.Down) != 0
 		if movingUp && !hitboxBlocksDown {
-			m.log.Debugf("ignoring %s, not directed %s", t, direction.Up)
+			m.log.Debugf("ignoring %s, not blocking %s", t, direction.Down)
 			continue
 		}
 
@@ -168,27 +166,20 @@ func (m *Movement) checkCollisionY(e string, dt float64) (bool, bool, float64, s
 				if collisions[0].move != math.MaxFloat64 {
 					hb := movedHitbox(collisions[0].ID, m.em)
 					shift := hb.Max.X - rays[0].X
-
-					// Todo, move this outside of the check itself
 					if shift < constants.SoftCollisionLimit {
 						pos := m.em.Pos(e)
 						pos.X += shift + 0.1 // Add extra shift for robustness on borders
-						fmt.Println("shifted!")
 						softCollision = true
 					}
-
-					fmt.Printf("left is candidate %s %s %0.2f\n", hb, rays[0], shift)
 				}
 
 				// Check right side
 				if collisions[2].move != math.MaxFloat64 {
 					hb := movedHitbox(collisions[2].ID, m.em)
 					shift := hb.Min.X - rays[2].X
-					fmt.Printf("right is candidate %s %s %0.2f\n", hb, rays[2], shift)
 					if shift > -constants.SoftCollisionLimit {
 						pos := m.em.Pos(e)
 						pos.X += shift - 0.1 // Add extra shift for robustness on borders
-						fmt.Println("shifted!")
 						softCollision = true
 					}
 				}
@@ -228,6 +219,21 @@ func (m *Movement) checkCollisionX(e string, dt float64) (bool, float64) {
 		if t == e {
 			continue
 		}
+		movingLeft := v.X < 0
+		movingRight := v.X > 0
+
+		hitboxBlocksLeft := (m.em.Hitbox(t).BlockedDirections & direction.Left) != 0
+		hitboxBlocksRight := (m.em.Hitbox(t).BlockedDirections & direction.Right) != 0
+		if movingLeft && !hitboxBlocksLeft {
+			m.log.Debugf("ignoring %s, not directed %s", t, direction.Left)
+			continue
+		}
+
+		if movingRight && !hitboxBlocksRight {
+			m.log.Debugf("ignoring %s, not directed %s", t, direction.Right)
+			continue
+		}
+
 		targetHitbox := movedHitbox(t, m.em)
 		intersection := sourceHitbox.Intersect(targetHitbox)
 		if intersection != zeroRect {

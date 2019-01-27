@@ -38,7 +38,7 @@ func New(m string, width, height int) *World {
 			system.NewGravity(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewPath(em, logging.NewLogger(logrus.InfoLevel)),
 			system.NewParenting(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
-			system.NewMovement(em, logging.NewLogger(logrus.DebugLevel)),
+			system.NewMovement(em, logging.NewLogger(logrus.InfoLevel)),
 			system.NewFollow(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			// system.NewShaking(em, logging.NewLogger(logrus.DebugLevel)),
 		},

@@ -111,5 +111,6 @@ func oneWayPlatform(em *entity.Manager) {
 	blocks.NewDrawable(em, 10, 120)
 	blocks.NewOneWayDrawable(em, 10, 90)
 	blocks.NewOneWayDrawable(em, 20, 30)
+	blocks.NewOneWayDrawable(em, 40, 100)
 	player.NewDrawable(em, 10, 80)
 }
