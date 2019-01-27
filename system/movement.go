@@ -62,15 +62,11 @@ func (m *Movement) movePlayer(dt float64) {
 	collided, softCollision, possibleMove, collidingID := checkCollisionY(playerID, m.em, dt)
 	pos := m.em.Pos(playerID)
 	v := m.em.Velocity(playerID)
-	// fmt.Printf("hard:%t soft:%t\n", collided, softCollision)
 	switch collided && !softCollision {
 	case true:
 		pos.Y += possibleMove
 		movingDownward := v.Y > 0
 		v.Y = 0
-
-		// If landing on top, mark colliding entity as parent
-		fmt.Println(collidingID, movingDownward)
 
 		// Mark colliding as parent!
 		m.em.Add(playerID, components.Parented{ID: collidingID})
