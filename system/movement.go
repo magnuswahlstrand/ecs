@@ -4,15 +4,15 @@ import (
 	"math"
 	"sort"
 
-	"github.com/kyeett/gomponents/direction"
-
 	"github.com/SolarLune/resolv/resolv"
+	"github.com/kyeett/gomponents/direction"
+	"github.com/peterhellberg/gfx"
+
 	"github.com/kyeett/ecs/constants"
 	"github.com/kyeett/ecs/entity"
 	"github.com/kyeett/ecs/events"
 	"github.com/kyeett/ecs/logging"
 	"github.com/kyeett/gomponents/components"
-	"github.com/peterhellberg/gfx"
 )
 
 // Movement is responsible adding velocity to entity positions
@@ -59,6 +59,9 @@ func (m *Movement) Update(dt float64) {
 
 func (m *Movement) movePlayer(dt float64) {
 	playerID := "player_1"
+	if !m.em.HasComponents(playerID, components.VelocityType) {
+		return
+	}
 
 	collided, softCollision, possibleMove, collidingID := m.checkCollisionY(playerID, dt)
 	pos := m.em.Pos(playerID)

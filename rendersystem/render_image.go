@@ -13,8 +13,8 @@ type RenderImage struct {
 	img *ebiten.Image
 }
 
-// NewRenderImage creates a new RenderImage system
-func NewRenderImage(path string, logger logging.Logger) *RenderImage {
+// NewRenderImageFromPath creates a new RenderImage system from a file path
+func NewRenderImageFromPath(path string, logger logging.Logger) *RenderImage {
 	img, err := gfx.OpenPNG(path)
 	if err != nil {
 		logger.Fatalf("open image", err)
@@ -24,18 +24,20 @@ func NewRenderImage(path string, logger logging.Logger) *RenderImage {
 		logger.Fatalf("create image", err)
 	}
 
+	return NewRenderImage(eImg, logger)
+}
+
+// NewRenderImage creates a new RenderImage system
+func NewRenderImage(img *ebiten.Image, logger logging.Logger) *RenderImage {
 	return &RenderImage{
-		log: logger.WithField("s", "RenderImage"),
-		img: eImg,
+		log: logger.WithField("s", "renderimage"),
+		img: img,
 	}
 }
 
 // Update the RenderImage system
 func (ri *RenderImage) Update(screen *ebiten.Image) {
 	screen.DrawImage(ri.img, &ebiten.DrawImageOptions{})
-	// drawRect(screen, gfx.R(10, 10, 50, 50))
-	// drawRect(screen, gfx.R(50, 50, 300+10, 280+10))
-	// drawRect(screen, gfx.R(60, 60, 300+20, 280+20))
 }
 
 // Send is an empty method to implement the System interface

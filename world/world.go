@@ -43,7 +43,7 @@ func New(m string, width, height int) *World {
 			// system.NewShaking(em, logging.NewLogger(logrus.DebugLevel)),
 		},
 		renderSystems: []rendersystem.System{
-			rendersystem.NewRenderImage("assets/images/background.png", logging.NewLogger()),
+			rendersystem.NewRenderImageFromPath("assets/images/background.png", logging.NewLogger()),
 			rendersystem.NewRender(em, logging.NewLogger()),
 			// rendersystem.NewDebugRender(em, logging.NewLogger()),
 		},

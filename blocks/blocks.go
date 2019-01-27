@@ -3,12 +3,12 @@ package blocks
 import (
 	"log"
 
-	"github.com/kyeett/gomponents/direction"
-
 	"github.com/hajimehoshi/ebiten"
+	"github.com/peterhellberg/gfx"
+
 	"github.com/kyeett/ecs/entity"
 	"github.com/kyeett/gomponents/components"
-	"github.com/peterhellberg/gfx"
+	"github.com/kyeett/gomponents/direction"
 )
 
 func New(em *entity.Manager, x, y int, cs ...interface{}) string {

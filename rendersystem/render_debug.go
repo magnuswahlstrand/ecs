@@ -39,6 +39,7 @@ func NewDebugRender(em *entity.Manager, logger logging.Logger) *DebugRender {
 const (
 	mask        = true
 	hitboxes    = true
+	areas       = true
 	spriteboxes = false
 	paths       = false
 	rays        = false
@@ -58,6 +59,10 @@ func (r *DebugRender) Update(screen *ebiten.Image) {
 
 	if hitboxes {
 		r.drawHitboxes(screen)
+	}
+
+	if areas {
+		r.drawAreas(screen)
 	}
 
 	if text {
@@ -80,12 +85,19 @@ func (r *DebugRender) drawBlackmask(screen *ebiten.Image) {
 }
 
 func (r *DebugRender) drawHitboxes(screen *ebiten.Image) {
-	for _, e := range r.em.FilteredEntities(components.PosType, components.DrawableType) {
+	for _, e := range r.em.FilteredEntities(components.PosType, components.HitboxType) {
 		pos := r.em.Pos(e)
-		if r.em.HasComponents(e, components.HitboxType) {
-			hb := r.em.Hitbox(e)
-			drawRect(screen, hb.Rect.Moved(pos.Vec), colornames.Red)
-		}
+		hb := r.em.Hitbox(e)
+
+		c := colornames.Red
+		drawRect(screen, hb.Rect.Moved(pos.Vec), c)
+	}
+}
+
+func (r *DebugRender) drawAreas(screen *ebiten.Image) {
+	for _, e := range r.em.FilteredEntities(components.AreaType) {
+		area := r.em.Area(e)
+		drawRect(screen, area.Rect, colornames.Yellow)
 	}
 }
 
