@@ -31,7 +31,6 @@ func (w *World) populateWorld() {
 
 func defaultEntities(em *entity.Manager) {
 	// Add a player
-
 	pathID := em.NewEntity("path")
 	em.Add(pathID, components.Path{
 		Label:  "line",
@@ -93,8 +92,10 @@ func singleBlock(em *entity.Manager) {
 
 func softCollision(em *entity.Manager) {
 	blocks.NewDrawable(em, 10, 120)
-	blocks.NewDrawable(em, 10-48+30, 120-64-30)
-	player.NewDrawable(em, 20, 93)
+	blocks.NewDrawable(em, 10-48-3+3, 120-64-30)
+	blocks.NewDrawable(em, 10+48-3+3, 120-64-30)
+	player.NewDrawable(em, 20+19+3, 93) //+19
+	// player.NewDrawable(em, 20, 93)  // Left side
 }
 
 func horizontalCollision(em *entity.Manager) {

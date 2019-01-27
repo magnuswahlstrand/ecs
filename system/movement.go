@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"github.com/SolarLune/resolv/resolv"
+	"github.com/kyeett/ecs/constants"
 	"github.com/kyeett/ecs/entity"
 	"github.com/kyeett/ecs/events"
 	"github.com/kyeett/ecs/logging"
@@ -58,24 +59,17 @@ func (m *Movement) Update(dt float64) {
 func (m *Movement) movePlayer(dt float64) {
 	playerID := "player_1"
 
-	collided, possibleMove, collidingID := checkCollisionY(playerID, m.em, dt)
+	collided, softCollision, possibleMove, collidingID := checkCollisionY(playerID, m.em, dt)
 	pos := m.em.Pos(playerID)
 	v := m.em.Velocity(playerID)
-	switch collided {
+	switch collided && !softCollision {
 	case true:
 		pos.Y += possibleMove
 		movingDownward := v.Y > 0
 		v.Y = 0
 
-		// If landing on top, mark colliding entity as parent
-		if movingDownward {
-			fmt.Println(collidingID, movingDownward)
-
-			// Mark colliding as parent!
-			m.em.Add(playerID, components.Parented{ID: collidingID})
-			// cV := m.em.Velocity(collidingID)
-			// v.X -= cV.X
-		}
+		// Mark colliding as parent!
+		m.em.Add(playerID, components.Parented{ID: collidingID})
 
 	default:
 		// Todo, handle this in a nicer way
@@ -87,6 +81,7 @@ func (m *Movement) movePlayer(dt float64) {
 		pos.Y += v.Add(parentVelocity).Y * dt
 	}
 
+	// Horizontal check
 	collided, possibleMove = checkCollisionX(playerID, m.em, dt)
 	pos.X += possibleMove
 }
@@ -97,7 +92,7 @@ type CollisionResult struct {
 }
 
 // checkCollisionY uses raycasting in at left, center, and right of hitbox to determine collision
-func checkCollisionY(e string, em *entity.Manager, dt float64) (bool, float64, string) {
+func checkCollisionY(e string, em *entity.Manager, dt float64) (bool, bool, float64, string) {
 	parentVelocity := gfx.ZV
 	if em.HasComponents(e, components.ParentedType) {
 		parented := em.Parented(e)
@@ -107,7 +102,7 @@ func checkCollisionY(e string, em *entity.Manager, dt float64) (bool, float64, s
 	v := em.Velocity(e)
 	totV := v.Add(parentVelocity).Scaled(dt)
 	if totV.Y == 0 {
-		return false, 0, ""
+		return false, false, 0, ""
 	}
 
 	movingUp := totV.Y < 0
@@ -123,7 +118,8 @@ func checkCollisionY(e string, em *entity.Manager, dt float64) (bool, float64, s
 		collisions = []CollisionResult{{"", -math.MaxFloat64}, {"", -math.MaxFloat64}, {"", -math.MaxFloat64}}
 	}
 
-	var hardCollision bool
+	var hardCollision, softCollision bool
+	var collisionCount int
 	for _, t := range em.FilteredEntities(components.HitboxType) {
 		if t == e {
 			continue
@@ -132,13 +128,13 @@ func checkCollisionY(e string, em *entity.Manager, dt float64) (bool, float64, s
 
 		for i, r := range rays {
 			if targetHitbox.Contains(r) {
+				collisionCount++
 				if movingUp {
 					y := targetHitbox.Max.Y - sourceHitbox.Min.Y + 0.1
 					if y < collisions[i].move {
 						collisions[i].move = y
 						collisions[i].ID = t
 					}
-
 					hardCollision = true
 				} else {
 					y := targetHitbox.Min.Y - sourceHitbox.Max.Y - 0.1
@@ -154,16 +150,51 @@ func checkCollisionY(e string, em *entity.Manager, dt float64) (bool, float64, s
 
 	if hardCollision {
 		if movingUp {
+
+			// Check for collision being soft
+			// Inspired by this article https://forums.tigsource.com/index.php?topic=46289.msg1387138#msg1387138
+			if collisionCount == 1 {
+				// Check left side
+				if collisions[0].move != math.MaxFloat64 {
+					hb := movedHitbox(collisions[0].ID, em)
+					shift := hb.Max.X - rays[0].X
+
+					// Todo, move this outside of the check itself
+					if shift < constants.SoftCollisionLimit {
+						pos := em.Pos(e)
+						pos.X += shift + 0.1 // Add extra shift for robustness on borders
+						fmt.Println("shifted!")
+						softCollision = true
+					}
+
+					fmt.Printf("left is candidate %s %s %0.2f\n", hb, rays[0], shift)
+				}
+
+				// Check right side
+				if collisions[2].move != math.MaxFloat64 {
+					hb := movedHitbox(collisions[2].ID, em)
+					shift := hb.Min.X - rays[2].X
+					fmt.Printf("right is candidate %s %s %0.2f\n", hb, rays[2], shift)
+					if shift > -constants.SoftCollisionLimit {
+						pos := em.Pos(e)
+						pos.X += shift - 0.1 // Add extra shift for robustness on borders
+						fmt.Println("shifted!")
+						softCollision = true
+					}
+				}
+			}
+
 			sort.Slice(collisions, func(i int, j int) bool {
 				return collisions[i].move < collisions[j].move
 			})
+
 		} else {
 			sort.Slice(collisions, func(i int, j int) bool {
 				return collisions[i].move > collisions[j].move
 			})
 		}
 	}
-	return hardCollision, collisions[0].move, collisions[0].ID
+	return hardCollision, softCollision, collisions[0].move, collisions[0].ID
 }
 
 func checkCollisionX(e string, em *entity.Manager, dt float64) (bool, float64) {

@@ -119,10 +119,14 @@ func (r *DebugRender) drawRays(screen *ebiten.Image) {
 		pos := r.em.Pos(e)
 		hb := r.em.Hitbox(e)
 
+		upperLeft := hb.Rect.Moved(pos.Vec).Min
 		bottomRight := hb.Rect.Moved(pos.Vec).Max
 
+		for _, v := range []gfx.Vec{upperLeft, upperLeft.Add(gfx.V(hb.W()/2, 0)), upperLeft.Add(gfx.V(hb.W(), 0))} {
+			gfx.DrawLine(screen, v, v.Add(gfx.V(0, -10)), 1.01, colornames.Yellow)
+		}
 		for _, v := range []gfx.Vec{bottomRight.Sub(gfx.V(hb.W(), 0)), bottomRight.Sub(gfx.V(hb.W()/2, 0)), bottomRight} {
-			gfx.DrawLine(screen, v, v.Add(gfx.V(0, 10)), 1.1, colornames.Yellow)
+			gfx.DrawLine(screen, v, v.Add(gfx.V(0, 10)), 1.01, colornames.Yellow)
 		}
 	}
 }
