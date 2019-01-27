@@ -3,6 +3,8 @@ package test
 import (
 	"testing"
 
+	"github.com/kyeett/gomponents/direction"
+
 	"github.com/kyeett/gomponents/components"
 	"github.com/peterhellberg/gfx"
 
@@ -93,6 +95,37 @@ func Test_Collision(t *testing.T) {
 	em.Remove(blockID, components.HitboxType)
 	movSystem.Update(1)
 	if !pos.Eq(initial) {
+		t.Fatalf("expected %s, got %s", expected, pos.Vec)
+	}
+}
+
+func Test_OneWayCollision(t *testing.T) {
+	// 1. Up, OK,
+	// 2. Down Blocked
+	//  0 1 2
+	//    P P
+	//  O O X
+	//  P
+
+	em := entity.NewManager(logging.NewLogger(logrus.DebugLevel))
+	playerID := em.NewEntity("player")
+	initial := gfx.V(0.0, 25.0)
+	speed := -5.0
+	em.Add(playerID, components.Pos{Vec: initial})
+	em.Add(playerID, components.Velocity{Vec: gfx.V(0, speed)})
+	em.Add(playerID, components.Hitbox{Rect: gfx.R(0, 0, 10, 5)})
+
+	// Add a box below
+	blockID := em.NewEntity("platform")
+	em.Add(blockID, components.Pos{Vec: gfx.V(0, 10)})
+	em.Add(blockID, components.Hitbox{Rect: gfx.R(0, 0, 10, 10)}, direction.Down)
+
+	movSystem := system.NewMovement(em, logging.NewLogger(logrus.DebugLevel))
+	movSystem.Update(3 * 1)
+
+	pos := em.Pos(playerID)
+	expected := initial.AddXY(0, 3*speed)
+	if !pos.Eq(expected) {
 		t.Fatalf("expected %s, got %s", expected, pos.Vec)
 	}
 }

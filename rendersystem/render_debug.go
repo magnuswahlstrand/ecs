@@ -84,7 +84,7 @@ func (r *DebugRender) drawHitboxes(screen *ebiten.Image) {
 		drawRect(screen, gfx.BoundsToRect(imgRect).Moved(pos.Vec), colornames.Greenyellow)
 		if r.em.HasComponents(e, components.HitboxType) {
 			hb := r.em.Hitbox(e)
-			drawRect(screen, hb.Rect.Moved(pos.Vec), colornames.Orange)
+			drawRect(screen, hb.Rect.Moved(pos.Vec), colornames.Red)
 		}
 	}
 }
