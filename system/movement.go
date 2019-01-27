@@ -61,7 +61,6 @@ func (m *Movement) movePlayer(dt float64) {
 	collided, possibleMove, collidingID := checkCollisionY(playerID, m.em, dt)
 	pos := m.em.Pos(playerID)
 	v := m.em.Velocity(playerID)
-	// hb := m.em.Hitbox(playerID)
 	switch collided {
 	case true:
 		pos.Y += possibleMove
@@ -79,20 +78,17 @@ func (m *Movement) movePlayer(dt float64) {
 		}
 
 	default:
-		pos.Y += v.Y * dt
+		// Todo, handle this in a nicer way
+		parentVelocity := gfx.ZV
+		if m.em.HasComponents(playerID, components.ParentedType) {
+			parented := m.em.Parented(playerID)
+			parentVelocity = m.em.Velocity(parented.ID).Vec
+		}
+		pos.Y += v.Add(parentVelocity).Y * dt
 	}
 
 	collided, possibleMove = checkCollisionX(playerID, m.em, dt)
-	// pos.X += possibleMove
-
-	switch collided {
-	case true:
-		pos.X += possibleMove
-		// v.X = 0
-	default:
-		pos.X += possibleMove //v.X * dt
-	}
-
+	pos.X += possibleMove
 }
 
 type CollisionResult struct {
@@ -196,7 +192,7 @@ func checkCollisionX(e string, em *entity.Manager, dt float64) (bool, float64) {
 		}
 	}
 
-	return false, totV.X * 0.9
+	return false, totV.X * 0.99
 }
 
 func min(a, b float64) float64 {
