@@ -1,9 +1,10 @@
 package system
 
 import (
-	"fmt"
 	"math"
 	"sort"
+
+	"github.com/kyeett/gomponents/direction"
 
 	"github.com/SolarLune/resolv/resolv"
 	"github.com/kyeett/ecs/constants"
@@ -59,13 +60,12 @@ func (m *Movement) Update(dt float64) {
 func (m *Movement) movePlayer(dt float64) {
 	playerID := "player_1"
 
-	collided, softCollision, possibleMove, collidingID := checkCollisionY(playerID, m.em, dt)
+	collided, softCollision, possibleMove, collidingID := m.checkCollisionY(playerID, dt)
 	pos := m.em.Pos(playerID)
 	v := m.em.Velocity(playerID)
 	switch collided && !softCollision {
 	case true:
 		pos.Y += possibleMove
-		movingDownward := v.Y > 0
 		v.Y = 0
 
 		// Mark colliding as parent!
@@ -82,7 +82,7 @@ func (m *Movement) movePlayer(dt float64) {
 	}
 
 	// Horizontal check
-	collided, possibleMove = checkCollisionX(playerID, m.em, dt)
+	collided, possibleMove = m.checkCollisionX(playerID, dt)
 	pos.X += possibleMove
 }
 
@@ -92,21 +92,23 @@ type CollisionResult struct {
 }
 
 // checkCollisionY uses raycasting in at left, center, and right of hitbox to determine collision
-func checkCollisionY(e string, em *entity.Manager, dt float64) (bool, bool, float64, string) {
+func (m *Movement) checkCollisionY(e string, dt float64) (bool, bool, float64, string) {
 	parentVelocity := gfx.ZV
-	if em.HasComponents(e, components.ParentedType) {
-		parented := em.Parented(e)
-		parentVelocity = em.Velocity(parented.ID).Vec
+	if m.em.HasComponents(e, components.ParentedType) {
+		parented := m.em.Parented(e)
+		if m.em.HasComponents(parented.ID, components.VelocityType) {
+			parentVelocity = m.em.Velocity(parented.ID).Vec
+		}
 	}
 
-	v := em.Velocity(e)
+	v := m.em.Velocity(e)
 	totV := v.Add(parentVelocity).Scaled(dt)
 	if totV.Y == 0 {
 		return false, false, 0, ""
 	}
 
 	movingUp := totV.Y < 0
-	sourceHitbox := movedHitbox(e, em)
+	sourceHitbox := movedHitbox(e, m.em)
 
 	var collisions []CollisionResult
 	var rays []gfx.Vec
@@ -120,11 +122,17 @@ func checkCollisionY(e string, em *entity.Manager, dt float64) (bool, bool, floa
 
 	var hardCollision, softCollision bool
 	var collisionCount int
-	for _, t := range em.FilteredEntities(components.HitboxType) {
+	for _, t := range m.em.FilteredEntities(components.HitboxType) {
 		if t == e {
 			continue
 		}
-		targetHitbox := movedHitbox(t, em)
+
+		targetHitbox := movedHitbox(t, m.em)
+		hitboxBlocksDown := (m.em.Hitbox(t).BlockedDirections & direction.Down) != 0
+		if movingUp && !hitboxBlocksDown {
+			m.log.Debugf("ignoring %s, not blocking %s", t, direction.Down)
+			continue
+		}
 
 		for i, r := range rays {
 			if targetHitbox.Contains(r) {
@@ -156,29 +164,22 @@ func checkCollisionY(e string, em *entity.Manager, dt float64) (bool, bool, floa
 			if collisionCount == 1 {
 				// Check left side
 				if collisions[0].move != math.MaxFloat64 {
-					hb := movedHitbox(collisions[0].ID, em)
+					hb := movedHitbox(collisions[0].ID, m.em)
 					shift := hb.Max.X - rays[0].X
-
-					// Todo, move this outside of the check itself
 					if shift < constants.SoftCollisionLimit {
-						pos := em.Pos(e)
+						pos := m.em.Pos(e)
 						pos.X += shift + 0.1 // Add extra shift for robustness on borders
-						fmt.Println("shifted!")
 						softCollision = true
 					}
-
-					fmt.Printf("left is candidate %s %s %0.2f\n", hb, rays[0], shift)
 				}
 
 				// Check right side
 				if collisions[2].move != math.MaxFloat64 {
-					hb := movedHitbox(collisions[2].ID, em)
+					hb := movedHitbox(collisions[2].ID, m.em)
 					shift := hb.Min.X - rays[2].X
-					fmt.Printf("right is candidate %s %s %0.2f\n", hb, rays[2], shift)
 					if shift > -constants.SoftCollisionLimit {
-						pos := em.Pos(e)
+						pos := m.em.Pos(e)
 						pos.X += shift - 0.1 // Add extra shift for robustness on borders
-						fmt.Println("shifted!")
 						softCollision = true
 					}
 				}
@@ -197,26 +198,43 @@ func checkCollisionY(e string, em *entity.Manager, dt float64) (bool, bool, floa
 	return hardCollision, softCollision, collisions[0].move, collisions[0].ID
 }
 
-func checkCollisionX(e string, em *entity.Manager, dt float64) (bool, float64) {
+func (m *Movement) checkCollisionX(e string, dt float64) (bool, float64) {
 	parentVelocity := gfx.ZV
-	v := em.Velocity(e)
-	if em.HasComponents(e, components.ParentedType) {
-		parented := em.Parented(e)
-		parentVelocity = em.Velocity(parented.ID).Vec
+	v := m.em.Velocity(e)
+	if m.em.HasComponents(e, components.ParentedType) {
+		parented := m.em.Parented(e)
+		if m.em.HasComponents(parented.ID, components.VelocityType) {
+			parentVelocity = m.em.Velocity(parented.ID).Vec
+		}
 	}
 
 	totV := v.Add(parentVelocity).Scaled(dt)
 	if totV.X == 0 {
 		return false, 0
 	}
-	sourceHitbox := movedHitbox(e, em).Moved(gfx.V(totV.X, 0))
+	sourceHitbox := movedHitbox(e, m.em).Moved(gfx.V(totV.X, 0))
 
 	zeroRect := gfx.Rect{}
-	for _, t := range em.FilteredEntities(components.HitboxType, components.PosType) {
+	for _, t := range m.em.FilteredEntities(components.HitboxType, components.PosType) {
 		if t == e {
 			continue
 		}
-		targetHitbox := movedHitbox(t, em)
+		movingLeft := v.X < 0
+		movingRight := v.X > 0
+
+		hitboxBlocksLeft := (m.em.Hitbox(t).BlockedDirections & direction.Left) != 0
+		hitboxBlocksRight := (m.em.Hitbox(t).BlockedDirections & direction.Right) != 0
+		if movingLeft && !hitboxBlocksLeft {
+			m.log.Debugf("ignoring %s, not directed %s", t, direction.Left)
+			continue
+		}
+
+		if movingRight && !hitboxBlocksRight {
+			m.log.Debugf("ignoring %s, not directed %s", t, direction.Right)
+			continue
+		}
+
+		targetHitbox := movedHitbox(t, m.em)
 		intersection := sourceHitbox.Intersect(targetHitbox)
 		if intersection != zeroRect {
 			return true, 0

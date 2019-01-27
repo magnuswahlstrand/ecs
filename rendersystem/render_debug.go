@@ -37,11 +37,12 @@ func NewDebugRender(em *entity.Manager, logger logging.Logger) *DebugRender {
 }
 
 const (
-	mask     = true
-	hitboxes = true
-	paths    = false
-	rays     = true
-	text     = true
+	mask        = true
+	hitboxes    = true
+	spriteboxes = false
+	paths       = false
+	rays        = false
+	text        = false
 )
 
 // Update the DebugRender system
@@ -49,6 +50,10 @@ func (r *DebugRender) Update(screen *ebiten.Image) {
 
 	if mask {
 		r.drawBlackmask(screen)
+	}
+
+	if spriteboxes {
+		r.drawSpriteboxes(screen)
 	}
 
 	if hitboxes {
@@ -77,15 +82,20 @@ func (r *DebugRender) drawBlackmask(screen *ebiten.Image) {
 func (r *DebugRender) drawHitboxes(screen *ebiten.Image) {
 	for _, e := range r.em.FilteredEntities(components.PosType, components.DrawableType) {
 		pos := r.em.Pos(e)
+		if r.em.HasComponents(e, components.HitboxType) {
+			hb := r.em.Hitbox(e)
+			drawRect(screen, hb.Rect.Moved(pos.Vec), colornames.Red)
+		}
+	}
+}
+
+func (r *DebugRender) drawSpriteboxes(screen *ebiten.Image) {
+	for _, e := range r.em.FilteredEntities(components.PosType, components.DrawableType) {
+		pos := r.em.Pos(e)
 		s := r.em.Drawable(e)
 
 		imgRect := gfx.IR(0, 0, s.Bounds().Dx(), s.Bounds().Dy())
-
 		drawRect(screen, gfx.BoundsToRect(imgRect).Moved(pos.Vec), colornames.Greenyellow)
-		if r.em.HasComponents(e, components.HitboxType) {
-			hb := r.em.Hitbox(e)
-			drawRect(screen, hb.Rect.Moved(pos.Vec), colornames.Orange)
-		}
 	}
 }
 

@@ -24,6 +24,8 @@ func (w *World) populateWorld() {
 		horizontalCollision(w.em)
 	case "softcollision":
 		softCollision(w.em)
+	case "oneway":
+		oneWayPlatform(w.em)
 	default:
 		log.Fatal("not a valid world")
 	}
@@ -103,4 +105,12 @@ func horizontalCollision(em *entity.Manager) {
 	blocks.NewDrawable(em, 10+64, 80)
 	blocks.NewDrawable(em, 10-64, 80)
 	player.NewDrawable(em, 40, 80)
+}
+
+func oneWayPlatform(em *entity.Manager) {
+	blocks.NewDrawable(em, 10, 120)
+	blocks.NewOneWayDrawable(em, 10, 90)
+	blocks.NewOneWayDrawable(em, 20, 30)
+	blocks.NewOneWayDrawable(em, 40, 100)
+	player.NewDrawable(em, 10, 80)
 }
