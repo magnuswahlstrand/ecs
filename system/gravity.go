@@ -1,6 +1,7 @@
 package system
 
 import (
+	"github.com/kyeett/ecs/constants"
 	"github.com/kyeett/ecs/entity"
 	"github.com/kyeett/ecs/events"
 	"github.com/kyeett/ecs/logging"
@@ -30,7 +31,7 @@ func (g *Gravity) Update(dt float64) {
 		}
 		g.log.WithField("id", e).Debugf("update")
 		v := g.em.Velocity(e)
-		v.Y += 0.25 * dt
+		v.Y += constants.Gravity * dt
 	}
 }
 

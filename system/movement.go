@@ -2,6 +2,8 @@ package system
 
 import (
 	"fmt"
+	"math"
+	"sort"
 
 	"github.com/SolarLune/resolv/resolv"
 	"github.com/kyeett/ecs/entity"
@@ -56,68 +58,155 @@ func (m *Movement) Update(dt float64) {
 func (m *Movement) movePlayer(dt float64) {
 	playerID := "player_1"
 
-	// Create space
-	var space resolv.Space
-	for _, e := range m.em.FilteredEntities(components.HitboxType) {
-		if e == playerID {
-			continue
-		}
-		pos := m.em.Pos(e)
-		hb := m.em.Hitbox(e)
-		hbMoved := hb.Moved(pos.Vec)
-		r := resolvRectangle(hbMoved)
-		r.SetTags(e)
-		space.AddShape(r)
-	}
-
-	pos := m.em.Pos(playerID)    //Todo, remove hardcoding?
-	v := m.em.Velocity(playerID) //Todo, remove hardcoding?
-	hb := m.em.Hitbox(playerID)
-
-	parentVelocity := gfx.ZV
-	if m.em.HasComponents(playerID, components.ParentedType) {
-		parented := m.em.Parented(playerID)
-		parentVelocity = m.em.Velocity(parented.ID).Vec
-	}
-
-	// Round to whole int steps
-	tX, tY := pos.Add(v.Vec.Add(parentVelocity).Scaled(dt)).XY()
-	rX, rY := int32(tX), int32(tY)
-
-	pX, pY := pos.XY()
-	rPX, rPY := int32(pX), int32(pY)
-
-	r := resolvRectangle(hb.Moved(pos.Vec))
-
-	if res := space.Resolve(r, 0, rY-rPY); res.Colliding() && !res.Teleporting {
-		collidingOnTop := v.Y > 0
+	collided, possibleMove, collidingID := checkCollisionY(playerID, m.em, dt)
+	pos := m.em.Pos(playerID)
+	v := m.em.Velocity(playerID)
+	switch collided {
+	case true:
+		pos.Y += possibleMove
+		movingDownward := v.Y > 0
 		v.Y = 0
 
 		// If landing on top, mark colliding entity as parent
-		if collidingOnTop {
-			collidingID := res.ShapeB.GetTags()[0]
-			hbColl := m.em.Hitbox(collidingID).Moved(m.em.Pos(collidingID).Vec)
-			cV := m.em.Velocity(collidingID)
-
-			// Set pos to closest non-colliding position
-			fmt.Printf("add colliding, resolv=%v, playerhb=%v, collidedHB=%v\n", res.ResolveY, hb.Moved(pos.Vec), hbColl)
-			pos.Y += hbColl.Min.Sub(hb.Moved(pos.Vec).Max).Y
+		if movingDownward {
+			fmt.Println(collidingID, movingDownward)
 
 			// Mark colliding as parent!
 			m.em.Add(playerID, components.Parented{ID: collidingID})
-			v.X -= cV.X
+			// cV := m.em.Velocity(collidingID)
+			// v.X -= cV.X
 		}
 
-	} else {
-		pos.Y += (v.Y + parentVelocity.Y) * dt
-		r.Move(0, rY-rPY) //FIXME, is this correct?
+	default:
+		// Todo, handle this in a nicer way
+		parentVelocity := gfx.ZV
+		if m.em.HasComponents(playerID, components.ParentedType) {
+			parented := m.em.Parented(playerID)
+			parentVelocity = m.em.Velocity(parented.ID).Vec
+		}
+		pos.Y += v.Add(parentVelocity).Y * dt
 	}
 
-	if res := space.Resolve(r, rX-rPX, 0); res.Colliding() && !res.Teleporting {
-		v.X = 0
-	} else {
-		pos.X += (v.X + parentVelocity.X) * dt
+	collided, possibleMove = checkCollisionX(playerID, m.em, dt)
+	pos.X += possibleMove
+}
+
+type CollisionResult struct {
+	ID   string
+	move float64
+}
+
+// checkCollisionY uses raycasting in at left, center, and right of hitbox to determine collision
+func checkCollisionY(e string, em *entity.Manager, dt float64) (bool, float64, string) {
+	parentVelocity := gfx.ZV
+	if em.HasComponents(e, components.ParentedType) {
+		parented := em.Parented(e)
+		parentVelocity = em.Velocity(parented.ID).Vec
 	}
+
+	v := em.Velocity(e)
+	totV := v.Add(parentVelocity).Scaled(dt)
+	if totV.Y == 0 {
+		return false, 0, ""
+	}
+
+	movingUp := totV.Y < 0
+	sourceHitbox := movedHitbox(e, em)
+
+	var collisions []CollisionResult
+	var rays []gfx.Vec
+	if movingUp {
+		rays = rayVectors(sourceHitbox.Min.AddXY(0, totV.Y), sourceHitbox.W())
+		collisions = []CollisionResult{{"", math.MaxFloat64}, {"", math.MaxFloat64}, {"", math.MaxFloat64}}
+	} else {
+		rays = rayVectors(sourceHitbox.Max.AddXY(-sourceHitbox.W(), totV.Y), sourceHitbox.W())
+		collisions = []CollisionResult{{"", -math.MaxFloat64}, {"", -math.MaxFloat64}, {"", -math.MaxFloat64}}
+	}
+
+	var hardCollision bool
+	for _, t := range em.FilteredEntities(components.HitboxType) {
+		if t == e {
+			continue
+		}
+		targetHitbox := movedHitbox(t, em)
+
+		for i, r := range rays {
+			if targetHitbox.Contains(r) {
+				if movingUp {
+					y := targetHitbox.Max.Y - sourceHitbox.Min.Y + 0.1
+					if y < collisions[i].move {
+						collisions[i].move = y
+						collisions[i].ID = t
+					}
+
+					hardCollision = true
+				} else {
+					y := targetHitbox.Min.Y - sourceHitbox.Max.Y - 0.1
+					if y > collisions[i].move {
+						collisions[i].move = y
+						collisions[i].ID = t
+					}
+					hardCollision = true
+				}
+			}
+		}
+	}
+
+	if hardCollision {
+		if movingUp {
+			sort.Slice(collisions, func(i int, j int) bool {
+				return collisions[i].move < collisions[j].move
+			})
+		} else {
+			sort.Slice(collisions, func(i int, j int) bool {
+				return collisions[i].move > collisions[j].move
+			})
+		}
+	}
+	return hardCollision, collisions[0].move, collisions[0].ID
+}
+
+func checkCollisionX(e string, em *entity.Manager, dt float64) (bool, float64) {
+	parentVelocity := gfx.ZV
+	v := em.Velocity(e)
+	if em.HasComponents(e, components.ParentedType) {
+		parented := em.Parented(e)
+		parentVelocity = em.Velocity(parented.ID).Vec
+	}
+
+	totV := v.Add(parentVelocity).Scaled(dt)
+	if totV.X == 0 {
+		return false, 0
+	}
+	sourceHitbox := movedHitbox(e, em).Moved(gfx.V(totV.X, 0))
+
+	zeroRect := gfx.Rect{}
+	for _, t := range em.FilteredEntities(components.HitboxType, components.PosType) {
+		if t == e {
+			continue
+		}
+		targetHitbox := movedHitbox(t, em)
+		intersection := sourceHitbox.Intersect(targetHitbox)
+		if intersection != zeroRect {
+			return true, 0
+		}
+	}
+
+	return false, totV.X * 0.99
+}
+
+func min(a, b float64) float64 {
+	if b < a {
+		return b
+	}
+	return a
+}
+
+func max(a, b float64) float64 {
+	if b > a {
+		return b
+	}
+	return a
 }
 
 // Send is an empty method to implement the System interface

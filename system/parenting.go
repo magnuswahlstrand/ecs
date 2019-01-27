@@ -24,6 +24,14 @@ func NewParenting(em *entity.Manager, ch chan events.Event, logger logging.Logge
 	}
 }
 
+// Create three rays
+func rayVectors(first gfx.Vec, dx float64) []gfx.Vec {
+	return []gfx.Vec{
+		first,
+		first.Add(gfx.V(dx/2, 0)),
+		first.Add(gfx.V(dx, 0))}
+}
+
 // Update the Parenting system
 func (r *Parenting) Update(dt float64) {
 
@@ -36,10 +44,7 @@ func (r *Parenting) Update(dt float64) {
 		bottomRight := hb.Max
 
 		// Create 3 rays, left, center, right of bottom. Move into entity hitbox above to make more robust
-		rays := []gfx.Vec{
-			bottomRight.Sub(gfx.V(hb.W(), -5)),
-			bottomRight.Sub(gfx.V(hb.W()/2, -5)),
-			bottomRight.Sub(gfx.V(0, -5))}
+		rays := rayVectors(bottomRight.Sub(gfx.V(hb.W(), -5)), hb.W())
 
 		isColliding := false
 		for _, v := range rays {

@@ -1,6 +1,7 @@
 package world
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/kyeett/ecs/blocks"
@@ -17,8 +18,12 @@ func (w *World) populateWorld() {
 		defaultEntities(w.em)
 	case "single_block":
 		singleBlock(w.em)
-	case "horizontal_platform":
+	case "horizontalplatform":
 		horizontalPlatform(w.em)
+	case "horizontalcollision":
+		horizontalCollision(w.em)
+	case "softcollision":
+		softCollision(w.em)
 	default:
 		log.Fatal("not a valid world")
 	}
@@ -68,7 +73,7 @@ func horizontalPlatform(em *entity.Manager) {
 		Type:   pathanimation.Polygon,
 	})
 
-	blocks.NewDrawable(em, 10, 120, components.OnPath{
+	blocks.NewDrawable(em, 10, 110, components.OnPath{
 		Label:     pathID,
 		Speed:     1,
 		Target:    1,
@@ -77,11 +82,24 @@ func horizontalPlatform(em *entity.Manager) {
 	})
 
 	blocks.NewDrawable(em, 110, 40)
-
-	player.NewDrawable(em, 20, 40)
+	player.NewDrawable(em, 40, 40)
+	fmt.Println(em.Velocity("player_1"))
 }
 
 func singleBlock(em *entity.Manager) {
 	blocks.NewDrawable(em, 10, 120)
-	player.NewDrawable(em, 20, 80)
+	player.NewDrawable(em, 70, 80)
+}
+
+func softCollision(em *entity.Manager) {
+	blocks.NewDrawable(em, 10, 120)
+	blocks.NewDrawable(em, 10-48+30, 120-64-30)
+	player.NewDrawable(em, 20, 93)
+}
+
+func horizontalCollision(em *entity.Manager) {
+	blocks.NewDrawable(em, 10, 120)
+	blocks.NewDrawable(em, 10+64, 80)
+	blocks.NewDrawable(em, 10-64, 80)
+	player.NewDrawable(em, 40, 80)
 }

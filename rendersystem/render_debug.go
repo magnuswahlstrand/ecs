@@ -41,7 +41,7 @@ const (
 	hitboxes = true
 	paths    = false
 	rays     = true
-	text     = false
+	text     = true
 )
 
 // Update the DebugRender system
@@ -95,6 +95,7 @@ func (r *DebugRender) drawText(screen *ebiten.Image) {
 		v := r.em.Velocity(e)
 		ebitenutil.DebugPrintAt(screen, fmt.Sprintf("xV: %0.2f", v.X), pos.Pt().X, pos.Pt().Y-15)
 		ebitenutil.DebugPrintAt(screen, fmt.Sprintf("yV: %0.2f", v.Y), pos.Pt().X, pos.Pt().Y)
+		ebitenutil.DebugPrintAt(screen, fmt.Sprintf("p: (%0.0f,%0.0f)", pos.X, pos.Y), pos.Pt().X, pos.Pt().Y+15)
 	}
 }
 
