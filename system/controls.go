@@ -38,6 +38,7 @@ func (c *Controls) Update(dt float64) {
 			switch val := ev.(type) {
 			case events.KeyJustPressed:
 				if c.em.HasComponents(e, components.ParentedType) {
+					c.log.Debugf("remove parenting from %s", e)
 					removeParenting(e, c.em)
 				}
 				v.Vec = v.Add(gfx.V(0, -5))
@@ -46,10 +47,10 @@ func (c *Controls) Update(dt float64) {
 
 				switch val.Key {
 				case ebiten.KeyLeft:
-					v.Vec = v.Add(gfx.V(-constants.AccelerationX, 0))
+					v.Vec = v.Add(gfx.V(-constants.AccelerationX*dt, 0))
 
 				case ebiten.KeyRight:
-					v.Vec = v.Add(gfx.V(constants.AccelerationX, 0))
+					v.Vec = v.Add(gfx.V(constants.AccelerationX*dt, 0))
 				}
 			}
 		}

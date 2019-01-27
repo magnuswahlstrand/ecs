@@ -88,11 +88,9 @@ func (m *Movement) movePlayer(dt float64) {
 	switch collided {
 	case true:
 		pos.X += possibleMove
-		fmt.Println("collision X, moving", possibleMove)
-		v.X = 0
+		// v.X = 0
 	default:
-		fmt.Println("no collision X, moving", v.X)
-		pos.X += v.X * dt
+		pos.X += possibleMove //v.X * dt
 	}
 
 }
@@ -174,22 +172,18 @@ func checkCollisionY(e string, em *entity.Manager, dt float64) (bool, float64, s
 
 func checkCollisionX(e string, em *entity.Manager, dt float64) (bool, float64) {
 	parentVelocity := gfx.ZV
-	// var parentedBool bool
+	v := em.Velocity(e)
 	if em.HasComponents(e, components.ParentedType) {
 		parented := em.Parented(e)
 		parentVelocity = em.Velocity(parented.ID).Vec
-		// parentedBool = true
 	}
 
-	v := em.Velocity(e)
 	totV := v.Add(parentVelocity).Scaled(dt)
-	// fmt.Println("parented!", v, totV, parentedBool)
 	if totV.X == 0 {
 		return false, 0
 	}
 	sourceHitbox := movedHitbox(e, em).Moved(gfx.V(totV.X, 0))
 
-	// var hardCollision bool
 	zeroRect := gfx.Rect{}
 	for _, t := range em.FilteredEntities(components.HitboxType, components.PosType) {
 		if t == e {
@@ -198,13 +192,10 @@ func checkCollisionX(e string, em *entity.Manager, dt float64) (bool, float64) {
 		targetHitbox := movedHitbox(t, em)
 		intersection := sourceHitbox.Intersect(targetHitbox)
 		if intersection != zeroRect {
-			// hardCollision = true
 			return true, 0
 		}
 	}
 
-	// var possibleMove float64
-	// fmt.Println(hardCollision, possibleMove, collis)
 	return false, totV.X * 0.9
 }
 

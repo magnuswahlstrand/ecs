@@ -34,7 +34,7 @@ func New(m string, width, height int) *World {
 			system.NewInput(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			// system.NewRandomInput(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewFriction(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
-			system.NewControls(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
+			system.NewControls(em, eventCh, logging.NewLogger(logrus.DebugLevel)),
 			system.NewGravity(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewPath(em, logging.NewLogger(logrus.InfoLevel)),
 			system.NewParenting(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
@@ -45,7 +45,7 @@ func New(m string, width, height int) *World {
 		renderSystems: []rendersystem.System{
 			rendersystem.NewRenderImage("assets/images/background.png", logging.NewLogger()),
 			rendersystem.NewRender(em, logging.NewLogger()),
-			rendersystem.NewDebugRender(em, logging.NewLogger()),
+			// rendersystem.NewDebugRender(em, logging.NewLogger()),
 		},
 		camera:  camera.New(em, width, height),
 		em:      em,
