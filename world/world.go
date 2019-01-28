@@ -10,14 +10,12 @@ import (
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/inpututil"
 	"github.com/kyeett/ecs/entity"
-	"github.com/kyeett/ecs/events"
 	"github.com/kyeett/ecs/logging"
 	"github.com/kyeett/ecs/system"
 	"github.com/sirupsen/logrus"
 )
 
 type World struct {
-	eventCh       chan events.Event
 	camera        *camera.Camera
 	systems       []system.System
 	renderSystems []rendersystem.System
@@ -27,20 +25,15 @@ type World struct {
 
 func New(m string, width, height int) *World {
 	em := entity.NewManager(logging.NewLogger())
-	eventCh := make(chan events.Event, 100)
 	w := World{
-		eventCh: eventCh,
 		systems: []system.System{
-			system.NewInput(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
-			// system.NewRandomInput(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
-			system.NewFriction(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
+			system.NewFriction(em, logging.NewLogger(logrus.InfoLevel)),
 			system.NewControls(em, logging.NewLogger(logrus.InfoLevel)),
-			system.NewGravity(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
+			system.NewGravity(em, logging.NewLogger(logrus.InfoLevel)),
+			system.NewParenting(em, logging.NewLogger(logrus.InfoLevel)),
 			system.NewPath(em, logging.NewLogger(logrus.InfoLevel)),
-			system.NewParenting(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewMovement(em, logging.NewLogger(logrus.InfoLevel)),
-			system.NewFollow(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
-			// system.NewShaking(em, logging.NewLogger(logrus.DebugLevel)),
+			system.NewFollow(em, logging.NewLogger(logrus.InfoLevel)),
 		},
 		renderSystems: []rendersystem.System{
 			rendersystem.NewRenderImageFromPath("assets/images/background.png", logging.NewLogger()),

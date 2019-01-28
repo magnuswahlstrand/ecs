@@ -3,7 +3,6 @@ package system
 import (
 	"github.com/kyeett/ecs/constants"
 	"github.com/kyeett/ecs/entity"
-	"github.com/kyeett/ecs/events"
 	"github.com/kyeett/ecs/logging"
 	"github.com/kyeett/gomponents/components"
 	"github.com/peterhellberg/gfx"
@@ -16,7 +15,7 @@ type Friction struct {
 }
 
 // NewFriction creates a new Friction system
-func NewFriction(em *entity.Manager, ch chan events.Event, logger logging.Logger) *Friction {
+func NewFriction(em *entity.Manager, logger logging.Logger) *Friction {
 	return &Friction{
 		em:  em,
 		log: logger.WithField("s", "Friction"),
