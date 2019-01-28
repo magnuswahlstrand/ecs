@@ -2,7 +2,6 @@ package system
 
 import (
 	"github.com/kyeett/ecs/entity"
-	"github.com/kyeett/ecs/events"
 	"github.com/kyeett/ecs/logging"
 	"github.com/kyeett/gomponents/components"
 	"github.com/peterhellberg/gfx"
@@ -10,17 +9,15 @@ import (
 
 // Parenting
 type Parenting struct {
-	em    *entity.Manager
-	outCh chan events.Event
-	log   logging.Logger
+	em  *entity.Manager
+	log logging.Logger
 }
 
 // NewParenting creates a new Parenting system
-func NewParenting(em *entity.Manager, ch chan events.Event, logger logging.Logger) *Parenting {
+func NewParenting(em *entity.Manager, logger logging.Logger) *Parenting {
 	return &Parenting{
-		em:    em,
-		outCh: ch,
-		log:   logger.WithField("s", "parenting"),
+		em:  em,
+		log: logger.WithField("s", "parenting"),
 	}
 }
 
@@ -68,6 +65,3 @@ func movedHitbox(e string, em *entity.Manager) gfx.Rect {
 	hb := em.Hitbox(e)
 	return hb.Rect.Moved(pos.Vec)
 }
-
-// Send is an empty method to implement the System interface
-func (r *Parenting) Send(ev events.Event) {}

@@ -20,7 +20,6 @@ func main() {
 	flag.Parse()
 
 	w := world.New(mapName, screenWidth, screenHeight)
-	w.StartEventQueue()
 
 	if err := ebiten.Run(w.Update, screenWidth, screenHeight, 2, "ECS demo"); err != nil {
 		log.Fatal(err)

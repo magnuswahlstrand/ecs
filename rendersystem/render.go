@@ -34,8 +34,9 @@ func (r *Render) Update(screen *ebiten.Image) {
 		sImg := r.em.Drawable(e).Image
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(pos.X, pos.Y)
-		screen.DrawImage(sImg, op)
-
+		if !r.em.HasComponents(e, components.ConditionalDrawableType) || r.em.ConditionalDrawable(e).ConditionMet {
+			screen.DrawImage(sImg, op)
+		}
 	}
 }
 

@@ -3,6 +3,8 @@ package entity
 import (
 	"fmt"
 	"math/rand"
+	"os"
+	"text/tabwriter"
 
 	"github.com/kyeett/ecs/logging"
 	"github.com/kyeett/gomponents/components"
@@ -53,6 +55,22 @@ func (em *Manager) NewEntity(typ ...string) string {
 	return id
 }
 
+func (em *Manager) DumpEntity(e string) {
+	fmt.Printf("Entity: %s\n", e)
+
+	components, err := em.entities.GetAll(e)
+	if err != nil {
+		fmt.Println("has no components")
+		return
+	}
+
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', tabwriter.AlignRight)
+	for k, v := range components {
+		fmt.Fprintf(w, "%s\t%v\t\n", k, v)
+	}
+	w.Flush()
+}
+
 func (em *Manager) Add(e string, cs ...interface{}) {
 	em.entities.Add(e, cs...)
 }
@@ -67,6 +85,10 @@ func (em *Manager) HasComponents(e string, types ...components.Type) bool {
 
 func uuid() string {
 	return fmt.Sprintf("%d", rand.Intn(10000))
+}
+
+func (em *Manager) Area(e string) *components.Area {
+	return em.entities.GetUnsafe(e, components.AreaType).(*components.Area)
 }
 
 func (em *Manager) Pos(e string) *components.Pos {
@@ -103,4 +125,12 @@ func (em *Manager) OnPath(e string) *components.OnPath {
 
 func (em *Manager) Parented(e string) *components.Parented {
 	return em.entities.GetUnsafe(e, components.ParentedType).(*components.Parented)
+}
+
+func (em *Manager) Condition(e string) *components.Condition {
+	return em.entities.GetUnsafe(e, components.ConditionType).(*components.Condition)
+}
+
+func (em *Manager) ConditionalDrawable(e string) *components.ConditionalDrawable {
+	return em.entities.GetUnsafe(e, components.ConditionalDrawableType).(*components.ConditionalDrawable)
 }
