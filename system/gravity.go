@@ -3,7 +3,6 @@ package system
 import (
 	"github.com/kyeett/ecs/constants"
 	"github.com/kyeett/ecs/entity"
-	"github.com/kyeett/ecs/events"
 	"github.com/kyeett/ecs/logging"
 	"github.com/kyeett/gomponents/components"
 )
@@ -15,7 +14,7 @@ type Gravity struct {
 }
 
 // NewGravity creates a new gravity system
-func NewGravity(em *entity.Manager, ch chan events.Event, logger logging.Logger) *Gravity {
+func NewGravity(em *entity.Manager, logger logging.Logger) *Gravity {
 
 	return &Gravity{
 		em:  em,

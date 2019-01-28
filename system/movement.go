@@ -43,7 +43,6 @@ func (m *Movement) Update(dt float64) {
 		return
 	}
 	playerID := "player_1"
-
 	for _, e := range m.em.FilteredEntities(components.PosType, components.VelocityType) {
 		if e == playerID {
 			continue
@@ -72,7 +71,9 @@ func (m *Movement) movePlayer(dt float64) {
 		v.Y = 0
 
 		// Mark colliding as parent!
-		m.em.Add(playerID, components.Parented{ID: collidingID})
+		if m.em.HasComponents(collidingID, components.VelocityType) {
+			m.em.Add(playerID, components.Parented{ID: collidingID})
+		}
 
 	default:
 		// Todo, handle this in a nicer way

@@ -55,7 +55,14 @@ func (t *Trigger) updateConditionalDrawable(b bool, conditionName string) {
 	// Find entities that depend on this condition
 	for _, f := range t.em.FilteredEntities(components.ConditionalDrawableType) {
 		if t.em.ConditionalDrawable(f).ConditionName == conditionName {
-			t.em.ConditionalDrawable(f).ConditionMet = b
+
+			cd := t.em.ConditionalDrawable(f)
+			noLimit := cd.MaxTransitions == 0
+			belowLimit := cd.Transitions < cd.MaxTransitions
+			if cd.ConditionMet != b && (noLimit || belowLimit) {
+				cd.ConditionMet = b
+				cd.Transitions++
+			}
 		}
 	}
 }
