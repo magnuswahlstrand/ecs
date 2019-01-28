@@ -31,14 +31,24 @@ func (i *Input) Update(dt float64) {
 		i.outCh <- events.KeyJustPressed{ebiten.KeyUp}
 	}
 
+	for _, k := range []ebiten.Key{ebiten.KeyZ, ebiten.KeyX, ebiten.KeyC} {
+		if inpututil.IsKeyJustPressed(k) {
+			i.outCh <- events.KeyJustPressed{k}
+		}
+	}
+
+	for _, k := range []ebiten.Key{ebiten.KeyZ, ebiten.KeyX, ebiten.KeyC} {
+		if ebiten.IsKeyPressed(k) {
+			i.outCh <- events.KeyPressed{k}
+		}
+	}
+
 	if ebiten.IsKeyPressed(ebiten.KeyA) || ebiten.IsKeyPressed(ebiten.KeyLeft) {
 		i.outCh <- events.KeyPressed{ebiten.KeyLeft}
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyD) || ebiten.IsKeyPressed(ebiten.KeyRight) {
 		i.outCh <- events.KeyPressed{ebiten.KeyRight}
-		// i.em.Add("camera_1", components.Shaking{time.Now()})
-
 	}
 }
 

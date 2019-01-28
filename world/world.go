@@ -34,7 +34,7 @@ func New(m string, width, height int) *World {
 			system.NewInput(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			// system.NewRandomInput(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewFriction(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
-			system.NewControls(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
+			system.NewControls(em, logging.NewLogger(logrus.InfoLevel)),
 			system.NewGravity(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
 			system.NewPath(em, logging.NewLogger(logrus.InfoLevel)),
 			system.NewParenting(em, eventCh, logging.NewLogger(logrus.InfoLevel)),
@@ -59,17 +59,6 @@ func (w *World) Reset() {
 	w.em.Reset()
 	w.camera.Reset()
 	w.populateWorld()
-}
-
-func (w *World) StartEventQueue() {
-	go func() {
-		for {
-			ev := <-w.eventCh
-			for _, s := range w.systems {
-				s.Send(ev)
-			}
-		}
-	}()
 }
 
 var timeStep = constants.DefaultTimeStep

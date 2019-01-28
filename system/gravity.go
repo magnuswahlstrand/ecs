@@ -34,8 +34,3 @@ func (g *Gravity) Update(dt float64) {
 		v.Y += constants.Gravity * dt
 	}
 }
-
-// Send is an empty method to implement the System interface
-func (g *Gravity) Send(ev events.Event) {
-	g.log.Debugf("send, do nothing")
-}

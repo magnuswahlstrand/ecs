@@ -33,6 +33,3 @@ func (f *Friction) Update(dt float64) {
 		}
 	}
 }
-
-// Send is an empty method to implement the System interface
-func (f *Friction) Send(ev events.Event) {}

@@ -68,6 +68,3 @@ func movedHitbox(e string, em *entity.Manager) gfx.Rect {
 	hb := em.Hitbox(e)
 	return hb.Rect.Moved(pos.Vec)
 }
-
-// Send is an empty method to implement the System interface
-func (r *Parenting) Send(ev events.Event) {}

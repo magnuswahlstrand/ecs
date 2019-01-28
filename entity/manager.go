@@ -130,3 +130,7 @@ func (em *Manager) Parented(e string) *components.Parented {
 func (em *Manager) Condition(e string) *components.Condition {
 	return em.entities.GetUnsafe(e, components.ConditionType).(*components.Condition)
 }
+
+func (em *Manager) ConditionalDrawable(e string) *components.ConditionalDrawable {
+	return em.entities.GetUnsafe(e, components.ConditionalDrawableType).(*components.ConditionalDrawable)
+}
