@@ -29,7 +29,7 @@ func (c *Controls) Update(dt float64) {
 	for _, e := range c.em.FilteredEntities(components.PosType, components.VelocityType, components.JoystickType) {
 		v := c.em.Velocity(e)
 
-		if inputhandler.KeyJustPressed("up") {
+		if inputhandler.KeyJustPressed("up") && v.Y == 0 {
 
 			if c.em.HasComponents(e, components.ParentedType) {
 				c.log.Debugf("remove parenting from %s", e)
@@ -47,7 +47,6 @@ func (c *Controls) Update(dt float64) {
 
 		}
 	}
-
 }
 
 // Remove parenting, and add velocity of parent to entity

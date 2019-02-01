@@ -26,7 +26,7 @@ func (i *Follow) Update(dt float64) {
 		follow := i.em.Follow(e)
 		pos := i.em.Pos(e)
 		posFollowed := i.em.Pos(follow.ID)
-		pos.Vec = posFollowed.Vec
+		pos.Vec = posFollowed.Vec.Add(follow.Offset)
 		i.log.Debugf("%q following %q", e, follow.ID)
 	}
 }

@@ -35,7 +35,13 @@ func (r *Render) Update(screen *ebiten.Image) {
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(pos.X, pos.Y)
 		if !r.em.HasComponents(e, components.ConditionalDrawableType) || r.em.ConditionalDrawable(e).ConditionMet {
-			screen.DrawImage(sImg, op)
+
+			if r.em.HasComponents(e, components.AnimationType) {
+				animation := r.em.Animation(e)
+				screen.DrawImage(animation.CurrentImage().(*ebiten.Image), op)
+			} else {
+				screen.DrawImage(sImg, op)
+			}
 		}
 	}
 }

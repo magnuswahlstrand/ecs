@@ -1,27 +1,36 @@
 package system
 
 import (
+	"log"
 	"strings"
+	"time"
 
 	"github.com/kyeett/ecs/entity"
 	"github.com/kyeett/ecs/inputhandler"
 	"github.com/kyeett/ecs/logging"
 	"github.com/kyeett/gomponents/components"
-	"github.com/peterhellberg/gfx"
 )
 
 // Trigger is responsible checking if certain triggers are fullfilled
 type Trigger struct {
-	em  *entity.Manager
-	log logging.Logger
+	em          *entity.Manager
+	eventChains []EventChain
+	log         logging.Logger
 }
 
 // NewTrigger creates a new Trigger system
-func NewTrigger(em *entity.Manager, logger logging.Logger) *Trigger {
+func NewTrigger(em *entity.Manager, logger logging.Logger, eventChains ...EventChain) *Trigger {
 	return &Trigger{
-		em:  em,
-		log: logger.WithField("s", "trigger"),
+		em:          em,
+		log:         logger.WithField("s", "trigger"),
+		eventChains: eventChains,
 	}
+}
+
+type EventChain interface {
+	Next(*entity.Manager)
+	WaitingForID() string
+	Done() bool
 }
 
 func (t *Trigger) conditonsMet(cond *components.Condition) bool {
@@ -37,11 +46,25 @@ func (t *Trigger) conditonsMet(cond *components.Condition) bool {
 			params := c[1:]
 			r1 := movedHitbox(params[0], t.em)
 			r2 := t.em.Area(params[1])
-			zeroRect := gfx.Rect{}
-			if r1.Intersect(r2.Rect) != zeroRect {
-			} else {
+
+			if !r1.Overlaps(r2.Rect) {
 				return false
 			}
+		case "wait_until":
+			t, err := time.Parse(time.RFC3339Nano, c[1])
+			if err != nil {
+				log.Fatal("incorrect time format", c[1])
+			}
+			return time.Now().After(t)
+		case "animation_complete":
+			for _, e := range t.em.FilteredEntities(components.AnimationType) {
+				if e == c[1] {
+					return false
+				}
+			}
+			// No such animation
+			return true
+
 		default:
 			t.log.Errorf("unknown condition type %s, mark as condition not met", c[0])
 			return false
@@ -67,6 +90,31 @@ func (t *Trigger) updateConditionalDrawable(b bool, conditionName string) {
 	}
 }
 
+func (t *Trigger) updateEventChains(conditionID string) {
+
+	var stoppedEventChains bool
+	for _, ec := range t.eventChains {
+		if ec.WaitingForID() == conditionID {
+			ec.Next(t.em)
+			if ec.Done() {
+				stoppedEventChains = true
+			}
+		}
+	}
+
+	// Remove stopped chains
+	if stoppedEventChains {
+		var tmp []EventChain
+		for _, ec := range t.eventChains {
+			if ec.Done() {
+				continue
+			}
+			tmp = append(tmp, ec)
+		}
+		t.eventChains = tmp
+	}
+}
+
 // Update the Trigger system
 func (t *Trigger) Update(dt float64) {
 
@@ -76,7 +124,7 @@ func (t *Trigger) Update(dt float64) {
 		if t.conditonsMet(cond) {
 			t.log.Debugf("conditions met for %s", cond.Name)
 			t.updateConditionalDrawable(true, cond.Name)
-
+			t.updateEventChains(e)
 		} else {
 			t.log.Debugf("conditions not met for %s", cond.Name)
 			t.updateConditionalDrawable(false, cond.Name)

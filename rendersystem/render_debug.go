@@ -40,8 +40,8 @@ const (
 	mask        = true
 	hitboxes    = true
 	areas       = true
-	spriteboxes = false
-	paths       = false
+	spriteboxes = true
+	paths       = true
 	rays        = false
 	text        = false
 )

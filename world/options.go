@@ -1,7 +1,6 @@
 package world
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/kyeett/ecs/blocks"
@@ -84,7 +83,6 @@ func horizontalPlatform(em *entity.Manager) {
 
 	blocks.NewDrawable(em, 110, 40)
 	player.NewDrawable(em, 40, 40)
-	fmt.Println(em.Velocity("player_1"))
 }
 
 func singleBlock(em *entity.Manager) {

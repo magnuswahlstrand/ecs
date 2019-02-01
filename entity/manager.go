@@ -7,6 +7,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/kyeett/ecs/logging"
+	"github.com/kyeett/gomponents/animation"
 	"github.com/kyeett/gomponents/components"
 )
 
@@ -79,6 +80,18 @@ func (em *Manager) Remove(e string, typ components.Type) {
 	em.entities.Remove(e, typ)
 }
 
+func (em *Manager) RemoveEntity(e string) {
+	em.entities.RemoveAll(e)
+	removed := []string{}
+	for _, f := range em.entityList {
+		if e == f {
+			continue
+		}
+		removed = append(removed, f)
+	}
+	em.entityList = removed
+}
+
 func (em *Manager) HasComponents(e string, types ...components.Type) bool {
 	return em.entities.HasComponents(e, types...)
 }
@@ -133,4 +146,8 @@ func (em *Manager) Condition(e string) *components.Condition {
 
 func (em *Manager) ConditionalDrawable(e string) *components.ConditionalDrawable {
 	return em.entities.GetUnsafe(e, components.ConditionalDrawableType).(*components.ConditionalDrawable)
+}
+
+func (em *Manager) Animation(e string) *animation.Animation {
+	return em.entities.GetUnsafe(e, components.AnimationType).(*animation.Animation)
 }

@@ -87,7 +87,17 @@ func (m *Movement) movePlayer(dt float64) {
 
 	// Horizontal check
 	collided, possibleMove = m.checkCollisionX(playerID, dt)
+	if abs(possibleMove) < 0.1 {
+		v.X = 0
+	}
 	pos.X += possibleMove
+}
+
+func abs(v float64) float64 {
+	if v < 0 {
+		return -v
+	}
+	return v
 }
 
 type CollisionResult struct {
