@@ -97,11 +97,15 @@ func (em *Manager) HasComponents(e string, types ...components.Type) bool {
 }
 
 func uuid() string {
-	return fmt.Sprintf("%d", rand.Intn(10000))
+	return fmt.Sprintf("%d", rand.Intn(100000))
 }
 
 func (em *Manager) Area(e string) *components.Area {
 	return em.entities.GetUnsafe(e, components.AreaType).(*components.Area)
+}
+
+func (em *Manager) Get(e string, typ components.Type) (interface{}, error) {
+	return em.entities.Get(e, typ)
 }
 
 func (em *Manager) Pos(e string) *components.Pos {
@@ -140,8 +144,8 @@ func (em *Manager) Parented(e string) *components.Parented {
 	return em.entities.GetUnsafe(e, components.ParentedType).(*components.Parented)
 }
 
-func (em *Manager) Condition(e string) *components.Condition {
-	return em.entities.GetUnsafe(e, components.ConditionType).(*components.Condition)
+func (em *Manager) Trigger(e string) *components.Trigger {
+	return em.entities.GetUnsafe(e, components.TriggerType).(*components.Trigger)
 }
 
 func (em *Manager) ConditionalDrawable(e string) *components.ConditionalDrawable {

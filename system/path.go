@@ -6,7 +6,6 @@ import (
 	"github.com/kyeett/gomponents/pathanimation"
 
 	"github.com/kyeett/ecs/entity"
-	"github.com/kyeett/ecs/events"
 	"github.com/kyeett/ecs/logging"
 	"github.com/kyeett/gomponents/components"
 )
@@ -113,9 +112,4 @@ func (p *Path) followCirclePath(e string, path *components.Path, onPath *compone
 	//Todo: this is a bit weird. Can we avoid scaling here?
 	v := p.em.Velocity(e)
 	v.Vec = to.Scaled(1 / dt)
-}
-
-// Send is an empty method to implement the System interface
-func (p *Path) Send(ev events.Event) {
-	p.log.Debugf("send, do nothing")
 }

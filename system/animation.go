@@ -32,15 +32,6 @@ func (a *Animation) Update(dt float64) {
 		animation := a.em.Animation(e)
 		if animation.IsLastFrame {
 			a.em.RemoveEntity(e)
-
-			// pos := a.em.Pos("player_1")
-			// if animation.Direction < 0 {
-			// 	pos.Vec = gfx.V(30, 300)
-			// 	entityloader.Animation(a.em, pos.Vec, -1)
-
-			// } else {
-			// 	a.em.Remove("player_1", components.ConditionalDrawableType)
-			// }
 			continue
 		}
 		animation.Update(dt * float64(time.Since(a.lastFrame).Nanoseconds()) / 1000000)

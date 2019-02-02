@@ -4,13 +4,14 @@ import (
 	"math"
 	"sort"
 
+	"github.com/kyeett/ecs/eventsystem"
+
 	"github.com/SolarLune/resolv/resolv"
 	"github.com/kyeett/gomponents/direction"
 	"github.com/peterhellberg/gfx"
 
 	"github.com/kyeett/ecs/constants"
 	"github.com/kyeett/ecs/entity"
-	"github.com/kyeett/ecs/events"
 	"github.com/kyeett/ecs/logging"
 	"github.com/kyeett/gomponents/components"
 )
@@ -58,7 +59,7 @@ func (m *Movement) Update(dt float64) {
 
 func (m *Movement) movePlayer(dt float64) {
 	playerID := "player_1"
-	if !m.em.HasComponents(playerID, components.VelocityType) {
+	if !m.em.HasComponents(playerID, components.VelocityType, components.HitboxType) {
 		return
 	}
 
@@ -70,10 +71,11 @@ func (m *Movement) movePlayer(dt float64) {
 		pos.Y += possibleMove
 		v.Y = 0
 
-		// Mark colliding as parent!
+		// Mark colliding as parent! TODO: handle this like an event
 		if m.em.HasComponents(collidingID, components.VelocityType) {
 			m.em.Add(playerID, components.Parented{ID: collidingID})
 		}
+		eventsystem.Add(eventsystem.Collision{playerID, collidingID})
 
 	default:
 		// Todo, handle this in a nicer way
@@ -86,7 +88,10 @@ func (m *Movement) movePlayer(dt float64) {
 	}
 
 	// Horizontal check
-	collided, possibleMove = m.checkCollisionX(playerID, dt)
+	collided, possibleMove, collidingID = m.checkCollisionX(playerID, dt)
+	if collided {
+		eventsystem.Add(eventsystem.Collision{playerID, collidingID})
+	}
 	if abs(possibleMove) < 0.1 {
 		v.X = 0
 	}
@@ -212,7 +217,7 @@ func (m *Movement) checkCollisionY(e string, dt float64) (bool, bool, float64, s
 	return hardCollision, softCollision, collisions[0].move, collisions[0].ID
 }
 
-func (m *Movement) checkCollisionX(e string, dt float64) (bool, float64) {
+func (m *Movement) checkCollisionX(e string, dt float64) (bool, float64, string) {
 	parentVelocity := gfx.ZV
 	v := m.em.Velocity(e)
 	if m.em.HasComponents(e, components.ParentedType) {
@@ -223,39 +228,39 @@ func (m *Movement) checkCollisionX(e string, dt float64) (bool, float64) {
 	}
 
 	totV := v.Add(parentVelocity).Scaled(dt)
+
+	// Optimization, don't check if movement is zero
 	if totV.X == 0 {
-		return false, 0
+		return false, 0, ""
 	}
 	sourceHitbox := movedHitbox(e, m.em).Moved(gfx.V(totV.X, 0))
 
-	zeroRect := gfx.Rect{}
-	for _, t := range m.em.FilteredEntities(components.HitboxType, components.PosType) {
-		if t == e {
+	for _, collidingID := range m.em.FilteredEntities(components.HitboxType, components.PosType) {
+		if collidingID == e {
 			continue
 		}
 		movingLeft := v.X < 0
 		movingRight := v.X > 0
 
-		hitboxBlocksLeft := (m.em.Hitbox(t).BlockedDirections & direction.Left) != 0
-		hitboxBlocksRight := (m.em.Hitbox(t).BlockedDirections & direction.Right) != 0
+		hitboxBlocksLeft := (m.em.Hitbox(collidingID).BlockedDirections & direction.Left) != 0
+		hitboxBlocksRight := (m.em.Hitbox(collidingID).BlockedDirections & direction.Right) != 0
 		if movingLeft && !hitboxBlocksLeft {
-			m.log.Debugf("ignoring %s, not directed %s", t, direction.Left)
+			m.log.Debugf("ignoring %s, not directed %s", collidingID, direction.Left)
 			continue
 		}
 
 		if movingRight && !hitboxBlocksRight {
-			m.log.Debugf("ignoring %s, not directed %s", t, direction.Right)
+			m.log.Debugf("ignoring %s, not directed %s", collidingID, direction.Right)
 			continue
 		}
 
-		targetHitbox := movedHitbox(t, m.em)
-		intersection := sourceHitbox.Intersect(targetHitbox)
-		if intersection != zeroRect {
-			return true, 0
+		targetHitbox := movedHitbox(collidingID, m.em)
+		if sourceHitbox.Overlaps(targetHitbox) {
+			return true, 0, collidingID
 		}
 	}
 
-	return false, totV.X * 0.99
+	return false, totV.X * 0.99, ""
 }
 
 func min(a, b float64) float64 {
@@ -271,6 +276,3 @@ func max(a, b float64) float64 {
 	}
 	return a
 }
-
-// Send is an empty method to implement the System interface
-func (m *Movement) Send(ev events.Event) {}

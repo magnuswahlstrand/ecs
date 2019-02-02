@@ -44,7 +44,6 @@ func (c *Controls) Update(dt float64) {
 
 		if inputhandler.KeyPressed("right") {
 			v.Vec = v.Add(gfx.V(constants.AccelerationX*dt, 0))
-
 		}
 	}
 }

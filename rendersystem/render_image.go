@@ -2,7 +2,6 @@ package rendersystem
 
 import (
 	"github.com/hajimehoshi/ebiten"
-	"github.com/kyeett/ecs/events"
 	"github.com/kyeett/ecs/logging"
 	"github.com/peterhellberg/gfx"
 )
@@ -39,6 +38,3 @@ func NewRenderImage(img *ebiten.Image, logger logging.Logger) *RenderImage {
 func (ri *RenderImage) Update(screen *ebiten.Image) {
 	screen.DrawImage(ri.img, &ebiten.DrawImageOptions{})
 }
-
-// Send is an empty method to implement the System interface
-func (ri *RenderImage) Send(ev events.Event) {}

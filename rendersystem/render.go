@@ -6,7 +6,6 @@ import (
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 	"github.com/kyeett/ecs/entity"
-	"github.com/kyeett/ecs/events"
 	"github.com/kyeett/ecs/logging"
 	"github.com/kyeett/gomponents/components"
 	"github.com/peterhellberg/gfx"
@@ -45,9 +44,6 @@ func (r *Render) Update(screen *ebiten.Image) {
 		}
 	}
 }
-
-// Send is an empty method to implement the System interface
-func (r *Render) Send(ev events.Event) {}
 
 func drawRect(screen *ebiten.Image, r gfx.Rect, c color.Color) {
 	pts := []gfx.Vec{r.Min, r.Min.Add(gfx.V(0, r.H())), r.Max, r.Min.Add(gfx.V(r.W(), 0))}

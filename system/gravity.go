@@ -2,20 +2,24 @@ package system
 
 import (
 	"github.com/kyeett/ecs/constants"
-	"github.com/kyeett/ecs/entity"
 	"github.com/kyeett/ecs/logging"
 	"github.com/kyeett/gomponents/components"
 )
 
 // Gravity is responsible for adding gravity to all entitites with a velocity type. It doesn't send or receive any events
 type Gravity struct {
-	em  *entity.Manager
+	em  VelocityStateHandler
 	log logging.Logger
 }
 
-// NewGravity creates a new gravity system
-func NewGravity(em *entity.Manager, logger logging.Logger) *Gravity {
+type VelocityStateHandler interface {
+	Velocity(string) *components.Velocity
+	HasComponents(e string, types ...components.Type) bool
+	FilteredEntities(types ...components.Type) []string
+}
 
+// NewGravity creates a new gravity system
+func NewGravity(em VelocityStateHandler, logger logging.Logger) *Gravity {
 	return &Gravity{
 		em:  em,
 		log: logger.WithField("s", "gravity"),

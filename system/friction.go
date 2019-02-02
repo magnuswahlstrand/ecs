@@ -2,7 +2,6 @@ package system
 
 import (
 	"github.com/kyeett/ecs/constants"
-	"github.com/kyeett/ecs/entity"
 	"github.com/kyeett/ecs/logging"
 	"github.com/kyeett/gomponents/components"
 	"github.com/peterhellberg/gfx"
@@ -10,12 +9,12 @@ import (
 
 // Friction is responsible for adding Friction to all entitites with a velocity type. It doesn't send or receive any events
 type Friction struct {
-	em  *entity.Manager
+	em  VelocityStateHandler
 	log logging.Logger
 }
 
 // NewFriction creates a new Friction system
-func NewFriction(em *entity.Manager, logger logging.Logger) *Friction {
+func NewFriction(em VelocityStateHandler, logger logging.Logger) *Friction {
 	return &Friction{
 		em:  em,
 		log: logger.WithField("s", "Friction"),

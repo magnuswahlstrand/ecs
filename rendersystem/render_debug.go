@@ -13,7 +13,6 @@ import (
 
 	"github.com/hajimehoshi/ebiten"
 	"github.com/kyeett/ecs/entity"
-	"github.com/kyeett/ecs/events"
 	"github.com/kyeett/ecs/logging"
 	"github.com/kyeett/gomponents/components"
 )
@@ -27,12 +26,10 @@ type DebugRender struct {
 
 // NewDebugRender creates a new DebugRender system
 func NewDebugRender(em *entity.Manager, logger logging.Logger) *DebugRender {
-	img, _ := ebiten.NewImage(200, 200, ebiten.FilterDefault)
-	img.Fill(color.Black)
 	return &DebugRender{
-		em:          em,
-		log:         logger.WithField("s", "DebugRender"),
-		blackscreen: img,
+		em:  em,
+		log: logger.WithField("s", "DebugRender"),
+		// blackscreen: new(ebiten.Image),
 	}
 }
 
@@ -48,6 +45,11 @@ const (
 
 // Update the DebugRender system
 func (r *DebugRender) Update(screen *ebiten.Image) {
+	if r.blackscreen == nil {
+		img, _ := ebiten.NewImage(screen.Bounds().Dx(), screen.Bounds().Dy(), ebiten.FilterDefault)
+		r.blackscreen = img
+		r.blackscreen.Fill(color.Black)
+	}
 
 	if mask {
 		r.drawBlackmask(screen)
@@ -103,9 +105,11 @@ func (r *DebugRender) drawAreas(screen *ebiten.Image) {
 
 func (r *DebugRender) drawSpriteboxes(screen *ebiten.Image) {
 	for _, e := range r.em.FilteredEntities(components.PosType, components.DrawableType) {
+		if r.em.HasComponents(e, components.AnimationType) {
+			continue
+		}
 		pos := r.em.Pos(e)
 		s := r.em.Drawable(e)
-
 		imgRect := gfx.IR(0, 0, s.Bounds().Dx(), s.Bounds().Dy())
 		drawRect(screen, gfx.BoundsToRect(imgRect).Moved(pos.Vec), colornames.Greenyellow)
 	}
@@ -152,6 +156,3 @@ func (r *DebugRender) drawRays(screen *ebiten.Image) {
 		}
 	}
 }
-
-// Send is an empty method to implement the System interface
-func (r *DebugRender) Send(ev events.Event) {}
